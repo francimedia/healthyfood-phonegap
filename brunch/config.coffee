@@ -46,7 +46,8 @@ exports.config =
                     'vendor/scripts/bootstrap/bootstrap-tab.js',
                     'vendor/scripts/bootstrap/bootstrap-typeahed.js',
 
-                    'vendor/scripts/cordova-2.6.0.js'
+                    'vendor/scripts/cordova-2.6.0.js',
+                    'vendor/scripts/jquery.mobile-1.3.0.js'
 
                 ]
                 
