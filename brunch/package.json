@@ -12,7 +12,41 @@
         "node": "~0.8.0"
     },
     "scripts": {
-        "start": "brunch watch --server"
+        
+        "start":                "./node_modules/.bin/cake help:npm",
+
+        "add:fastclick":        "./node_modules/.bin/cake add:fastclick",
+
+        "rem:fastclick":        "./node_modules/.bin/cake rem:fastclick",
+
+        "cordova:init":         "./node_modules/.bin/cake cordova:init",
+        "cordova:init:android": "./node_modules/.bin/cake cordova:init:android",
+        "cordova:init:ios":     "./node_modules/.bin/cake cordova:init:ios",
+        "cordova:add:android":  "./node_modules/.bin/cake cordova:add:android",
+        "cordova:add:ios":      "./node_modules/.bin/cake cordova:add:ios",
+        "cordova:rem:android":  "./node_modules/.bin/cake cordova:rm:android",
+        "cordova:rem:ios":      "./node_modules/.bin/cake cordova:rm:ios",
+
+        "build:android:dev":    "./node_modules/.bin/cake build:android:dev",
+        "build:android:prod":   "./node_modules/.bin/cake build:android:prod",
+        "build:ios:dev":        "./node_modules/.bin/cake build:ios:dev",
+        "build:ios:prod":       "./node_modules/.bin/cake build:ios:prod",
+        "build:web:dev":        "./node_modules/.bin/cake build:web:dev",
+        "build:web:prod":       "./node_modules/.bin/cake build:web:prod",
+
+        "watch:cordova:dev":    "./node_modules/.bin/cake watch:cordova:dev",
+        "watch:cordova:prod":   "./node_modules/.bin/cake watch:cordova:prod",
+        "watch:web:dev":        "./node_modules/.bin/cake watch:web:dev",
+        "watch:web:prod":       "./node_modules/.bin/cake watch:web:prod",
+
+        "server:dev":           "./node_modules/.bin/cake server:dev",
+        "server:prod":          "./node_modules/.bin/cake server:prod",
+
+        "emulate:android:dev":  "./node_modules/.bin/cake emulate:android:dev",
+        "emulate:android:prod": "./node_modules/.bin/cake emulate:android:prod",
+        "emulate:ios:dev":      "./node_modules/.bin/cake emulate:ios:dev",
+        "emulate:ios:prod":     "./node_modules/.bin/cake emulate:ios:prod"
+
     },
     "dependencies": {
         "clean-css-brunch": ">= 1.5.1",

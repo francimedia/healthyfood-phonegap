@@ -45,7 +45,9 @@ exports.config =
                     'vendor/scripts/bootstrap/bootstrap-scrollspy.js',
                     'vendor/scripts/bootstrap/bootstrap-tab.js',
                     'vendor/scripts/bootstrap/bootstrap-typeahed.js',
-                    
+
+                    'vendor/scripts/cordova-2.6.0.js'
+
                 ]
                 
         stylesheets:
