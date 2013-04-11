@@ -10,7 +10,7 @@ Application = {
         
         if (typeof Object.freeze === 'function') Object.freeze(this)
         
-        // this.bindEvents();
+        this.bindEvents();
     
     },
 
@@ -26,7 +26,7 @@ Application = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicity call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        app.receivedEvent('deviceready');
+        this.receivedEvent('deviceready');
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
@@ -42,3 +42,7 @@ Application = {
 }
 
 module.exports = Application
+
+window.onerror = function(message, url, lineNumber) {
+    console.log("Error: "+message+" in "+url+" at line "+lineNumber);
+}

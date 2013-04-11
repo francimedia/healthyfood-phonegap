@@ -13,7 +13,22 @@ module.exports = View.extend({
     },
 
     afterRender: function() {
-    	FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
+
+    	document.addEventListener("deviceready", function() {
+    		// FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
+    		CDV.FB.init("506169639432441", function() {
+					CDV.FB.getLoginStatus(function(response) {
+		    			$('#facebook-login').hide();
+		    		}, function() {
+		    			alert('fail1');
+		    		});
+				},
+    			function() {
+    				alert('fail1');
+    			}
+    		);
+
+    	}, false);
 
 		var directionsService = new google.maps.DirectionsService();
 
@@ -96,6 +111,37 @@ module.exports = View.extend({
 			picture.take();
 		});    		
 
+
+		this.$('#facebook-login').click(function(event) {
+			alert('Login');
+
+  			CDV.FB.getLoginStatus(function(response) {
+    			$('#facebook-login').hide();
+    		}, function() {
+    			alert('fail1');
+    		});
+
+    		return;
+
+			CDV.FB.login({
+				'scope': ''
+			}, function(response) {
+				alert('login');
+				return;
+			   if (response.authResponse) {
+			     alert('Welcome!  Fetching your information.... ');
+			     FB.api('/me', function(response) {
+			       alert('Good to see you, ' + response.name + '.');
+			     });
+			   } else {
+			     alert('User cancelled login or did not fully authorize.');
+			   }
+			}, function(response) {
+				alert('fail');
+				alert(response);
+			});
+
+		});  
     }
 });
 

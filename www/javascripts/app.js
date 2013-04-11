@@ -92,7 +92,7 @@ window.require.register("application", function(exports, require, module) {
           
           if (typeof Object.freeze === 'function') Object.freeze(this)
           
-          // this.bindEvents();
+          this.bindEvents();
       
       },
 
@@ -108,7 +108,7 @@ window.require.register("application", function(exports, require, module) {
       // The scope of 'this' is the event. In order to call the 'receivedEvent'
       // function, we must explicity call 'app.receivedEvent(...);'
       onDeviceReady: function() {
-          app.receivedEvent('deviceready');
+          this.receivedEvent('deviceready');
       },
       // Update DOM on a Received Event
       receivedEvent: function(id) {
@@ -124,7 +124,10 @@ window.require.register("application", function(exports, require, module) {
   }
 
   module.exports = Application
-  
+
+  window.onerror = function(message, url, lineNumber) {
+      console.log("Error: "+message+" in "+url+" at line "+lineNumber);
+  }
 });
 window.require.register("initialize", function(exports, require, module) {
   var application = require('application')
@@ -183,7 +186,22 @@ window.require.register("views/home_view", function(exports, require, module) {
       },
 
       afterRender: function() {
-      	FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
+
+      	document.addEventListener("deviceready", function() {
+      		// FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
+      		CDV.FB.init("506169639432441", function() {
+  					CDV.FB.getLoginStatus(function(response) {
+  		    			$('#facebook-login').hide();
+  		    		}, function() {
+  		    			alert('fail1');
+  		    		});
+  				},
+      			function() {
+      				alert('fail1');
+      			}
+      		);
+
+      	}, false);
 
   		var directionsService = new google.maps.DirectionsService();
 
@@ -266,6 +284,37 @@ window.require.register("views/home_view", function(exports, require, module) {
   			picture.take();
   		});    		
 
+
+  		this.$('#facebook-login').click(function(event) {
+  			alert('Login');
+
+    			CDV.FB.getLoginStatus(function(response) {
+      			$('#facebook-login').hide();
+      		}, function() {
+      			alert('fail1');
+      		});
+
+      		return;
+
+  			CDV.FB.login({
+  				'scope': ''
+  			}, function(response) {
+  				alert('login');
+  				return;
+  			   if (response.authResponse) {
+  			     alert('Welcome!  Fetching your information.... ');
+  			     FB.api('/me', function(response) {
+  			       alert('Good to see you, ' + response.name + '.');
+  			     });
+  			   } else {
+  			     alert('User cancelled login or did not fully authorize.');
+  			   }
+  			}, function(response) {
+  				alert('fail');
+  				alert(response);
+  			});
+
+  		});  
       }
   });
 
@@ -294,7 +343,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>";
+    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>";
     });
 });
 window.require.register("views/view", function(exports, require, module) {
