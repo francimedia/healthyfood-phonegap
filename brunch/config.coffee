@@ -49,7 +49,8 @@ exports.config =
                     'vendor/scripts/bootstrap/bootstrap-typeahed.js',
 
                     'vendor/scripts/jquery.transit.min.js',
-                    'vendor/scripts/google-maps.js',
+                    # 'vendor/scripts/google-maps.js',
+                    'vendor/scripts/mapbox.js',
                     'vendor/scripts/cdv-plugin-fb-connect.js',
                     'vendor/scripts/facebook-js-sdk.js'
 

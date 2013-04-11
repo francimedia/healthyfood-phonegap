@@ -302,95 +302,168 @@ window.require.register("lib/mymap", function(exports, require, module) {
   module.exports = mymap
 });
 window.require.register("lib/mymapbox", function(exports, require, module) {
-  mymap = {
+  mymapbox = {
   	
-  	gmap: null,
+  	mbox: null,
   	
+  	zoom: 11,
   	userMarker: null,
+  	userMarkerLayer: null,
+  	markerLayer: null,
 
   	currentPosition: {
-  		lat: '40.739063',
-  		lng: '-74.005501'
-  	},
+          lat: 40.73269,
+          lon: -73.99498
+      },
 
-  	mapOptions: {
-  		mapTypeId: google.maps.MapTypeId.ROADMAP,
-  		mapTypeControl: false,
-  		mapTypeControl: false,
-  		overviewMapControl: false,
-  		panControl: false,
-  		zoomControl: false,
-  		scaleControl: false,
-  		streetViewControl: false,
-  		zoom: 14,
-  		styles: [
-  		{
-  		  "stylers": [
-  		    { "saturation": -69 },
-  		    { "visibility": "simplified" }
-  		  ]
-  		}
-  		]
-  	},
+      markerSymbols: {
+          9: 'a',
+          10: 'b',
+          11: 'c',
+          12: 'd',
+          13: 'e',
+          14: 'f',
+          15: 'g',
+          16: 'h',
+          17: 'i',
+          18: 'j',
+          19: 'k',
+          20: 'l'
+      },
 
   	init: function(mapEl) {
-  		mymap.loadGmap(mapEl);
-  		mymap.userLocation.get();
-  		return mymap.gmap;
+  		$(function() { 
+  			mymapbox.loadMapbox(mapEl);
+  		});
+  		// return mymapbox.mbox;
   	},
 
-  	loadGmap: function(mapEl) {
-  		var directionsService = new google.maps.DirectionsService();
-  		mymap.mapOptions.center = new google.maps.LatLng(mymap.currentPosition.lat, mymap.currentPosition.lng);
-          mymap.gmap = new google.maps.Map(mapEl.get(0), mymap.mapOptions);	
+  	loadMapbox: function(mapEl) { 
+  		$.getScript("http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js", function(data, textStatus, jqxhr) {
+  				mymapbox.mbox = mapbox.map(mapEl).zoom(mymapbox.zoom).center(mymapbox.currentPosition);
+  				mymapbox.mbox.addLayer(mapbox.layer().id('examples.map-4l7djmvo'));
+
+  				// add layer for venue markers
+  		        mymapbox.markerLayer = mapbox.markers.layer();
+  		        mymapbox.mbox.addLayer(mymapbox.markerLayer);
+
+  		        mymapbox.userLocation.get();
+
+  		});
   	},
 
   	userLocation: {
   		
   		get: function() {
-  			navigator.geolocation.getCurrentPosition(mymap.userLocation.onSuccess, mymap.userLocation.onError);
+  			navigator.geolocation.getCurrentPosition(mymapbox.userLocation.onSuccess, mymapbox.userLocation.onError);
   		},
 
   		onSuccess: function(position) {
-  			mymap.addUserMarker(position.coords.latitude, position.coords.longitude, true); 
+  			mymapbox.currentPosition = {
+  		        lat: position.coords.latitude,
+  		        lon: position.coords.longitude
+  		    };
+  			mymapbox.addUserMarker(true); 
   		},
 
   		// onError Callback receives a PositionError object
   		onError: function(error) {
   		    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
   		    // add fake position (for testing)
-  		    mymap.addUserMarker(mymap.currentPosition.lat, mymap.currentPosition.lng, true);
+  		    mymapbox.addUserMarker(true);
   		}		
   	},
 
-  	addUserMarker: function(latitude,longitude,panTo) {
-  		
+  	addUserMarker: function(panTo) {
+
   		// remove old existing marker before adding a new one
-  		if(mymap.userMarker) {
-  			mymap.userMarker.setMap(null);
+  		if(mymapbox.userMarker) {
+  			mymapbox.userMarker = null; // ???
   		}
 
-  		mymap.userMarker = new google.maps.Marker({
-  			position: new google.maps.LatLng(latitude, longitude),
-  			map: mymap.gmap
-  		});  
+  		mymapbox.userMarkerLayer = mapbox.markers.layer();
+  		mymapbox.mbox.addLayer(mymapbox.userMarkerLayer);
+
+  		mymapbox.userMarkerLayer.add_feature({
+  			geometry: {
+  			    coordinates: [
+  			        mymapbox.currentPosition.lon,
+  			        mymapbox.currentPosition.lat
+  			    ]
+  			},
+  			properties: {
+  			    'marker-size': 'small',
+  			    'marker-color': '#4079ff',
+  			    'marker-symbol': 'circle',
+  			}
+  		}); 
 
   		// position.coords.accuracy
   		if(panTo == true) {
-  			mymap.centerUserMarker();
+  			mymapbox.centerUserMarker();
   		}
   	},
+
   	centerUserMarker: function() {
-  		if(mymap.userMarker) {
-  			mymap.gmap.panTo(mymap.userMarker.getPosition());
-  		}	
+          mymapbox.mbox.zoom(13).center(mymapbox.currentPosition);
+          mymapbox.getVenues(mymapbox.currentPosition);        
   	},
+
   	fireResize: function() {
-  		google.maps.event.trigger(mymap.gmap, 'resize');		
-  	}
+  		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
+  	},
+
+      getVenues: function(userLocation) {
+
+          var url = "https://healthyfood.herokuapp.com/app/api/venues.json";
+          var data = userLocation;
+
+          var parseResponse = function (result) {
+          	console.log(result);
+              venuesCache = [];
+              console.log(result);
+              
+              var features = [];
+              $.each(result.response.venues, function (index, venue) {
+
+                  venuesCache[venue.id] = venue;
+
+                  var makerId = index < 9 ? index + 1 : mymapbox.markerSymbols[index];
+                  var markerColor = venue.save != 0 ? '#ff762c' : '#8aa924';
+
+                  features.push({
+                      geometry: {
+                          coordinates: [
+                              venue.lon,
+                              venue.lat
+                          ]
+                      },
+                      properties: {
+                          'marker-size': 'small',
+                          'marker-color': markerColor,
+                          'marker-symbol': makerId
+                      }
+                  });
+
+              });
+
+              mymapbox.markerLayer.features(features);
+
+          };
+
+  		$.ajax({
+  		  type: "GET",
+  		  url: url,
+  		  data: data,
+  		  dataType: 'json',
+  		  success: parseResponse
+  		});
+
+      }
+
   }
 
-  module.exports = mymap
+  module.exports = mymapbox
 });
 window.require.register("lib/mymenu", function(exports, require, module) {
   mymenu = {
@@ -400,11 +473,11 @@ window.require.register("lib/mymenu", function(exports, require, module) {
   		_this.$('#menu').height($('html').height()); 
 
   		_this.$('#menu-button').click(function() {
-  			menu.open();
+  			mymenu.open();
   		});
 
   		_this.$('#menu-bg').click(function() {
-  			menu.close();
+  			mymenu.close();
   		});
 
   	},
@@ -495,7 +568,8 @@ window.require.register("models/model", function(exports, require, module) {
 window.require.register("views/home_view", function(exports, require, module) {
   var View     = require('./view')
     , template = require('./templates/home')
-    , mymap   = require('lib/mymap')
+    // , mymap   = require('lib/mymap')
+    , mymapbox   = require('lib/mymapbox')
     , myfb   = require('lib/myfb')
     , mymenu   = require('lib/mymenu')
     , picture   = require('lib/picture')
@@ -514,7 +588,10 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
-      	connection.check();
+      	// var map = mymap.init(this.$('#map-small'));
+      	var map = mymapbox.init('map-small');
+
+      	// connection.check();
       	
    		mymenu.init(this);
 
@@ -563,14 +640,12 @@ window.require.register("views/home_view", function(exports, require, module) {
 
   		myfb.init(callback);
 
-      	var map = mymap.init(this.$('#map-small'));
-
   		this.$('#map-overlay').click(function(event) {
   			$('#map-small').animate({
   				height: $(window).height() - $('header').height()
   			}, 250, 'swing', function() {
   				$('#map-overlay').hide();
-  				mymap.fireResize();
+  				mymapbox.fireResize();
 
   				$('header').click(function(event) {
   					$('#map-small').animate({
@@ -578,12 +653,10 @@ window.require.register("views/home_view", function(exports, require, module) {
   					}, 250, 'swing', function() {
   						$('#map-overlay').show();
   						console.log($('#map-overlay'));
-  						mymap.fireResize();
-  						mymap.centerUserMarker();
+  						mymapbox.fireResize();
+  						mymapbox.centerUserMarker();
   					}); 
-  				});    	
-
-
+  				});
   			}); 
   		});    	
 
@@ -642,7 +715,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<script src=\"http://debug.phonegap.com/target/target-script-min.js#healthyfood340598jhg\"\n	data-url=\"ttp://debug.phonegap.com/client/#healthyfood340598jhg\"\n></script>\n\n<div id=\"menu\">\n\n	<ul>\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <h1>Healthy Food Compass</h1>\n    <button class=\"btn\" id=\"menu-button\">Menu</button>\n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>\n";
+    return "<script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js'></script>\n<div id=\"menu\">\n\n	<ul>\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <h1>Healthy Food Compass</h1>\n    <button class=\"btn\" id=\"menu-button\">Menu</button>\n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>\n";
     });
 });
 window.require.register("views/view", function(exports, require, module) {

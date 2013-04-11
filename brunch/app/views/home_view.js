@@ -1,6 +1,7 @@
 var View     = require('./view')
   , template = require('./templates/home')
-  , mymap   = require('lib/mymap')
+  // , mymap   = require('lib/mymap')
+  , mymapbox   = require('lib/mymapbox')
   , myfb   = require('lib/myfb')
   , mymenu   = require('lib/mymenu')
   , picture   = require('lib/picture')
@@ -19,7 +20,10 @@ module.exports = View.extend({
 
     afterRender: function() {
 
-    	connection.check();
+    	// var map = mymap.init(this.$('#map-small'));
+    	var map = mymapbox.init('map-small');
+
+    	// connection.check();
     	
  		mymenu.init(this);
 
@@ -68,14 +72,12 @@ module.exports = View.extend({
 
 		myfb.init(callback);
 
-    	var map = mymap.init(this.$('#map-small'));
-
 		this.$('#map-overlay').click(function(event) {
 			$('#map-small').animate({
 				height: $(window).height() - $('header').height()
 			}, 250, 'swing', function() {
 				$('#map-overlay').hide();
-				mymap.fireResize();
+				mymapbox.fireResize();
 
 				$('header').click(function(event) {
 					$('#map-small').animate({
@@ -83,12 +85,10 @@ module.exports = View.extend({
 					}, 250, 'swing', function() {
 						$('#map-overlay').show();
 						console.log($('#map-overlay'));
-						mymap.fireResize();
-						mymap.centerUserMarker();
+						mymapbox.fireResize();
+						mymapbox.centerUserMarker();
 					}); 
-				});    	
-
-
+				});
 			}); 
 		});    	
 

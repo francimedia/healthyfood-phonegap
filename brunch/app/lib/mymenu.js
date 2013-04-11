@@ -5,11 +5,11 @@ mymenu = {
 		_this.$('#menu').height($('html').height()); 
 
 		_this.$('#menu-button').click(function() {
-			menu.open();
+			mymenu.open();
 		});
 
 		_this.$('#menu-bg').click(function() {
-			menu.close();
+			mymenu.close();
 		});
 
 	},
