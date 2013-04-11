@@ -34,17 +34,16 @@ module.exports = View.extend({
 				height: $(window).height() - $('header').height()
 			}, 250, 'swing', function() {
 				$('#map-overlay').hide();
-				google.maps.event.trigger(map, 'resize');
+				mymap.fireResize();
 
 				$('header').click(function(event) {
 					$('#map-small').animate({
 						height: 200
 					}, 250, 'swing', function() {
 						$('#map-overlay').show();
-						google.maps.event.trigger(map, 'resize');
-						if(userMarker) {
-							map.panTo(userMarker.getPosition());
-						}
+						console.log($('#map-overlay'));
+						mymap.fireResize();
+						mymap.centerUserMarker();
 					}); 
 				});    	
 

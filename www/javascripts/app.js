@@ -160,67 +160,74 @@ window.require.register("lib/mymap", function(exports, require, module) {
   		lng: '-74.005501'
   	},
 
-  	init: function(mapEl) {
-
-  		var directionsService = new google.maps.DirectionsService();
-
-  		
-
-  		var mapOptions = {
-  			center: new google.maps.LatLng(mymap.currentPosition.lat, mymap.currentPosition.lng),
-  			mapTypeId: google.maps.MapTypeId.ROADMAP,
-  			mapTypeControl: false,
-  			mapTypeControl: false,
-  			overviewMapControl: false,
-  			panControl: false,
-  			zoomControl: false,
-  			scaleControl: false,
-  			streetViewControl: false,
-  			zoom: 14,
-  			styles: [
-  			{
-  			  "stylers": [
-  			    { "saturation": -69 },
-  			    { "visibility": "simplified" }
-  			  ]
-  			}
-  			]
+  	mapOptions: {
+  		mapTypeId: google.maps.MapTypeId.ROADMAP,
+  		mapTypeControl: false,
+  		mapTypeControl: false,
+  		overviewMapControl: false,
+  		panControl: false,
+  		zoomControl: false,
+  		scaleControl: false,
+  		streetViewControl: false,
+  		zoom: 14,
+  		styles: [
+  		{
+  		  "stylers": [
+  		    { "saturation": -69 },
+  		    { "visibility": "simplified" }
+  		  ]
   		}
+  		]
+  	},
 
-          mymap.gmap =  new google.maps.Map(mapEl.get(0), mapOptions);
+  	init: function(mapEl) {
+  		mymap.loadGmap(mapEl);
+  		mymap.userLocation.get();
+  		return mymap.gmap;
+  	},
 
-  		var onSuccess = function(position) {
+  	loadGmap: function(mapEl) {
+  		var directionsService = new google.maps.DirectionsService();
+  		mymap.mapOptions.center = new google.maps.LatLng(mymap.currentPosition.lat, mymap.currentPosition.lng);
+          mymap.gmap = new google.maps.Map(mapEl.get(0), mymap.mapOptions);	
+  	},
 
-  			mymap.userMarker = new google.maps.Marker({
-  				position: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
-  				map: mymap.gmap
-  			});  
+  	userLocation: {
+  		
+  		get: function() {
+  			navigator.geolocation.getCurrentPosition(mymap.userLocation.onSuccess, mymap.userLocation.onError);
+  		},
 
-  			// position.coords.accuracy
-  			mymap.gmap.panTo(userMarker.getPosition());
-   
-  		};
+  		onSuccess: function(position) {
+  			mymap.addUserMarker(position.coords.latitude, position.coords.longitude, true); 
+  		},
 
   		// onError Callback receives a PositionError object
-  		//
-  		function onError(error) {
+  		onError: function(error) {
   		    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
+  		    // add fake position (for testing)
+  		    mymap.addUserMarker(mymap.currentPosition.lat, mymap.currentPosition.lng, true);
+  		}		
+  	},
 
+  	addUserMarker: function(latitude,longitude,panTo) {
+  		mymap.userMarker = new google.maps.Marker({
+  			position: new google.maps.LatLng(latitude, longitude),
+  			map: mymap.gmap
+  		});  
 
-  			mymap.userMarker = new google.maps.Marker({
-  				position: new google.maps.LatLng(mymap.currentPosition.lat, mymap.currentPosition.lng),
-  				map: mymap.gmap
-  			});  
-
-  			// position.coords.accuracy
-  			mymap.gmap.panTo(userMarker.getPosition());
-  					    
+  		// position.coords.accuracy
+  		if(panTo == true) {
+  			mymap.centerUserMarker();
   		}
-
-  		navigator.geolocation.getCurrentPosition(onSuccess, onError);
-
-  		return mymap.gmap;
-
+  	},
+  	centerUserMarker: function() {
+  		if(mymap.userMarker) {
+  			mymap.gmap.panTo(mymap.userMarker.getPosition());
+  		}	
+  	},
+  	fireResize: function() {
+  		google.maps.event.trigger(mymap.gmap, 'resize');		
   	}
   }
 
@@ -301,17 +308,16 @@ window.require.register("views/home_view", function(exports, require, module) {
   				height: $(window).height() - $('header').height()
   			}, 250, 'swing', function() {
   				$('#map-overlay').hide();
-  				google.maps.event.trigger(map, 'resize');
+  				mymap.fireResize();
 
   				$('header').click(function(event) {
   					$('#map-small').animate({
   						height: 200
   					}, 250, 'swing', function() {
   						$('#map-overlay').show();
-  						google.maps.event.trigger(map, 'resize');
-  						if(userMarker) {
-  							map.panTo(userMarker.getPosition());
-  						}
+  						console.log($('#map-overlay'));
+  						mymap.fireResize();
+  						mymap.centerUserMarker();
   					}); 
   				});    	
 
