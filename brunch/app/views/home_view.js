@@ -14,9 +14,6 @@ module.exports = View.extend({
 
     afterRender: function() {
 
-    	FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
-
-
 		var directionsService = new google.maps.DirectionsService();
 
 		var currentPosition = {
