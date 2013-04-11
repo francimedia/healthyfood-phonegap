@@ -105,15 +105,45 @@ window.require.register("initialize", function(exports, require, module) {
   })
   
 });
+window.require.register("lib/connection", function(exports, require, module) {
+  connection = {
+      check: function () {
+          
+          // not working on desktop
+          if(isMobile == null) {
+              return;
+          }
+
+          var networkState = navigator.connection.type;
+
+          var states = {};
+          states[Connection.UNKNOWN]  = 'Unknown connection';
+          states[Connection.ETHERNET] = 'Ethernet connection';
+          states[Connection.WIFI]     = 'WiFi connection';
+          states[Connection.CELL_2G]  = 'Cell 2G connection';
+          states[Connection.CELL_3G]  = 'Cell 3G connection';
+          states[Connection.CELL_4G]  = 'Cell 4G connection';
+          states[Connection.CELL]     = 'Cell generic connection';
+          states[Connection.NONE]     = 'No network connection';
+
+          alert('Connection type: ' + states[networkState]);
+      } 
+  };
+
+  module.exports = connection
+
+  
+});
 window.require.register("lib/myfb", function(exports, require, module) {
   myfb = {
-  	init: function() {
+  	init: function(cb) {
   		if(isMobile != null) {
   			CDV.FB.init("506169639432441", 
   				function() {
   					alert('fail1');
   				}
   			);
+  			if(cb) cb();
   		} else {
   			// unset custom FB lib
   			window.FB = null;
@@ -128,6 +158,7 @@ window.require.register("lib/myfb", function(exports, require, module) {
   				});
 
   				// Additional initialization code such as adding Event Listeners goes here
+  				if(cb) cb();
   			};
 
   			// load original Facebook JS SDK for desktop testing
@@ -233,6 +264,61 @@ window.require.register("lib/mymap", function(exports, require, module) {
 
   module.exports = mymap
 });
+window.require.register("lib/mymenu", function(exports, require, module) {
+  mymenu = {
+  	init: function(_this) { 
+
+  		_this.$('#menu').transition({ x: '18em' }, 1);
+  		_this.$('#menu').height($('html').height()); 
+
+  		_this.$('#menu-button').click(function() {
+  			menu.open();
+  		});
+
+  		_this.$('#menu-bg').click(function() {
+  			menu.close();
+  		});
+
+  	},
+  	open: function() {
+  		$('#menu, #menu-bg').show();
+  		$('#menu-bg').height($('html').height()); 
+  		$('#menu-bg').width($(window).width()); 
+  		$('#menu').transition({ x: '0' }, 500, 'ease');
+  	},
+  	close: function() {
+  		$('#menu-bg').hide();
+  		$('#menu').transition({ x: '18em' }, 500, 'ease', function() {
+  			$('#menu').hide();
+  		});
+  	}
+  };
+
+  module.exports = mymenu
+
+  
+});
+window.require.register("lib/picture", function(exports, require, module) {
+  picture = {
+  	take: function takePicture() {
+  		navigator.camera.getPicture(picture.onSuccess, picture.onFail, { 
+  			quality: 50,
+  		    destinationType: Camera.DestinationType.DATA_URL
+  		 });
+  	},
+
+  	onSuccess: function(imageData) {
+  	    var image = $('#myImage');
+  	    image.src = "data:image/jpeg;base64," + imageData;
+  	},
+
+  	onFail: function(message) {
+  	    alert('Failed because: ' + message);
+  	}	
+  };
+
+  module.exports = picture
+});
 window.require.register("lib/router", function(exports, require, module) {
   var application = require('application')
 
@@ -243,7 +329,9 @@ window.require.register("lib/router", function(exports, require, module) {
       
       home: function() {
   		if (isMobile == null) {
-  	        $('body').html(application.homeView.render().el)
+              $(function() {
+  	           $('body').html(application.homeView.render().el)
+              });
   	        return;
   	    }
           document.addEventListener('deviceready', function() {
@@ -276,6 +364,9 @@ window.require.register("views/home_view", function(exports, require, module) {
     , template = require('./templates/home')
     , mymap   = require('lib/mymap')
     , myfb   = require('lib/myfb')
+    , mymenu   = require('lib/mymenu')
+    , picture   = require('lib/picture')
+    , connection   = require('lib/connection')
 
   module.exports = View.extend({
       id: 'home-view',
@@ -290,16 +381,54 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
-      	myfb.init();
-   
-   
+      	connection.check();
+      	
+   		mymenu.init(this);
+
+   		var fbLoginButtonCallback = function(response) {
+  			  if (response.status === 'connected') {
+  			    // the user is logged in and has authenticated your
+  			    // app, and response.authResponse supplies
+  			    // the user's ID, a valid access token, a signed
+  			    // request, and the time the access token 
+  			    // and signed request each expire
+  			    var uid = response.authResponse.userID;
+  			    var accessToken = response.authResponse.accessToken;
+
+  			      // alert(response.authResponse.userID);
+      			FB.api('/me', function(response) {
+  			     //  alert('Good to see you, ' + response + '.');
+  			    //   alert('Good to see you, ' + response.name + '.');
+  			     });			    
+  			  } else if (response.status === 'not_authorized') {
+  			    // the user is logged in to Facebook, 
+  			    // but has not authenticated your app
+  			    $('#facebook-login').show();
+  			  } else {
+  			    // the user isn't logged in to Facebook.
+  			    $('#facebook-login').show();
+  			  } 			
+   		};
+
       	if(isMobile != null) {
-  			CDV.FB.getLoginStatus(function(response) {
-  				$('#facebook-login').hide();
-  			}, function() {
-  				alert('fail1');
-  			});   
-  		} 	
+      		var callback = function() {
+  				CDV.FB.getLoginStatus(function(response) {
+  					fbLoginButtonCallback(response);
+  				}, function() {
+  					alert('fail');
+  				});  
+  			}; 
+  		} else {
+  			var callback = function() {
+  				FB.getLoginStatus(function(response) {
+  					fbLoginButtonCallback(response);
+  				}, function() {
+  					alert('fail');
+  				});   
+  			};
+  		}
+
+  		myfb.init(callback);
 
       	var map = mymap.init(this.$('#map-small'));
 
@@ -332,21 +461,27 @@ window.require.register("views/home_view", function(exports, require, module) {
 
 
   		this.$('#facebook-login').click(function(event) {
-  			alert('Login');
-  			return;
-    			CDV.FB.getLoginStatus(function(response) {
-      			$('#facebook-login').hide();
-      		}, function() {
-      			alert('fail1');
-      		});
-
-      		return;
-
-  			CDV.FB.login({
-  				'scope': ''
-  			}, function(response) {
-  				alert('login');
+  			var scope = 'email';
+  	    	if(isMobile == null) {
+  				FB.login(function(response) {
+  				   if (response.authResponse) {
+  				     console.log('Welcome!  Fetching your information.... ');
+  				     FB.api('/me', function(response) {
+  				       console.log('Good to see you, ' + response.name + '.');
+  				     });
+  				   } else {
+  				     console.log('User cancelled login or did not fully authorize.');
+  				   }
+  				 }, {
+  					'scope': scope
+  				});
   				return;
+  			}
+  			
+  			CDV.FB.login({
+  				'scope': scope
+  			}, function(response) {
+
   			   if (response.authResponse) {
   			     alert('Welcome!  Fetching your information.... ');
   			     FB.api('/me', function(response) {
@@ -362,41 +497,10 @@ window.require.register("views/home_view", function(exports, require, module) {
 
   		});  
 
-  		this.$('#menu').transition({ x: '17em' }, 1);
-  		this.$('#menu').height($('html').height()); 
+      },
 
-  		this.$('#menu-button').click(function() {
-  			$('#menu, #menu-bg').show();
-  			$('#menu-bg').height($('html').height()); 
-  			$('#menu-bg').width($(window).width()); 
-  			$('#menu').transition({ x: '0' }, 500, 'ease');
-  		});
-
-  		this.$('#menu-bg').click(function() {
-  			$('#menu-bg').hide();
-  			$('#menu').transition({ x: '17em' }, 500, 'ease');
-  		});
-
-      }
   });
-
-  var picture = {
-  	take: function takePicture() {
-  		navigator.camera.getPicture(picture.onSuccess, picture.onFail, { 
-  			quality: 50,
-  		    destinationType: Camera.DestinationType.DATA_URL
-  		 });
-  	},
-
-  	onSuccess: function(imageData) {
-  	    var image = $('#myImage');
-  	    image.src = "data:image/jpeg;base64," + imageData;
-  	},
-
-  	onFail: function(message) {
-  	    alert('Failed because: ' + message);
-  	}	
-  }	
+  
 });
 window.require.register("views/templates/home", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -405,7 +509,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "\n<div id=\"menu\">\n\n	<ul>\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <h1>Healthy Food Compass</h1>\n    <button class=\"btn\" id=\"menu-button\">Menu</button>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>\n";
+    return "<script src=\"http://debug.phonegap.com/target/target-script-min.js#healthyfood340598jhg\"\n	data-url=\"ttp://debug.phonegap.com/client/#healthyfood340598jhg\"\n></script>\n\n<div id=\"menu\">\n\n	<ul>\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <h1>Healthy Food Compass</h1>\n    <button class=\"btn\" id=\"menu-button\">Menu</button>\n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>\n";
     });
 });
 window.require.register("views/view", function(exports, require, module) {

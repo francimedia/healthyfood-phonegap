@@ -2,6 +2,9 @@ var View     = require('./view')
   , template = require('./templates/home')
   , mymap   = require('lib/mymap')
   , myfb   = require('lib/myfb')
+  , mymenu   = require('lib/mymenu')
+  , picture   = require('lib/picture')
+  , connection   = require('lib/connection')
 
 module.exports = View.extend({
     id: 'home-view',
@@ -16,16 +19,54 @@ module.exports = View.extend({
 
     afterRender: function() {
 
-    	myfb.init();
- 
- 
+    	connection.check();
+    	
+ 		mymenu.init(this);
+
+ 		var fbLoginButtonCallback = function(response) {
+			  if (response.status === 'connected') {
+			    // the user is logged in and has authenticated your
+			    // app, and response.authResponse supplies
+			    // the user's ID, a valid access token, a signed
+			    // request, and the time the access token 
+			    // and signed request each expire
+			    var uid = response.authResponse.userID;
+			    var accessToken = response.authResponse.accessToken;
+
+			      // alert(response.authResponse.userID);
+    			FB.api('/me', function(response) {
+			     //  alert('Good to see you, ' + response + '.');
+			    //   alert('Good to see you, ' + response.name + '.');
+			     });			    
+			  } else if (response.status === 'not_authorized') {
+			    // the user is logged in to Facebook, 
+			    // but has not authenticated your app
+			    $('#facebook-login').show();
+			  } else {
+			    // the user isn't logged in to Facebook.
+			    $('#facebook-login').show();
+			  } 			
+ 		};
+
     	if(isMobile != null) {
-			CDV.FB.getLoginStatus(function(response) {
-				$('#facebook-login').hide();
-			}, function() {
-				alert('fail1');
-			});   
-		} 	
+    		var callback = function() {
+				CDV.FB.getLoginStatus(function(response) {
+					fbLoginButtonCallback(response);
+				}, function() {
+					alert('fail');
+				});  
+			}; 
+		} else {
+			var callback = function() {
+				FB.getLoginStatus(function(response) {
+					fbLoginButtonCallback(response);
+				}, function() {
+					alert('fail');
+				});   
+			};
+		}
+
+		myfb.init(callback);
 
     	var map = mymap.init(this.$('#map-small'));
 
@@ -58,21 +99,27 @@ module.exports = View.extend({
 
 
 		this.$('#facebook-login').click(function(event) {
-			alert('Login');
-			return;
-  			CDV.FB.getLoginStatus(function(response) {
-    			$('#facebook-login').hide();
-    		}, function() {
-    			alert('fail1');
-    		});
-
-    		return;
-
-			CDV.FB.login({
-				'scope': ''
-			}, function(response) {
-				alert('login');
+			var scope = 'email';
+	    	if(isMobile == null) {
+				FB.login(function(response) {
+				   if (response.authResponse) {
+				     console.log('Welcome!  Fetching your information.... ');
+				     FB.api('/me', function(response) {
+				       console.log('Good to see you, ' + response.name + '.');
+				     });
+				   } else {
+				     console.log('User cancelled login or did not fully authorize.');
+				   }
+				 }, {
+					'scope': scope
+				});
 				return;
+			}
+			
+			CDV.FB.login({
+				'scope': scope
+			}, function(response) {
+
 			   if (response.authResponse) {
 			     alert('Welcome!  Fetching your information.... ');
 			     FB.api('/me', function(response) {
@@ -88,38 +135,6 @@ module.exports = View.extend({
 
 		});  
 
-		this.$('#menu').transition({ x: '17em' }, 1);
-		this.$('#menu').height($('html').height()); 
+    },
 
-		this.$('#menu-button').click(function() {
-			$('#menu, #menu-bg').show();
-			$('#menu-bg').height($('html').height()); 
-			$('#menu-bg').width($(window).width()); 
-			$('#menu').transition({ x: '0' }, 500, 'ease');
-		});
-
-		this.$('#menu-bg').click(function() {
-			$('#menu-bg').hide();
-			$('#menu').transition({ x: '17em' }, 500, 'ease');
-		});
-
-    }
 });
-
-var picture = {
-	take: function takePicture() {
-		navigator.camera.getPicture(picture.onSuccess, picture.onFail, { 
-			quality: 50,
-		    destinationType: Camera.DestinationType.DATA_URL
-		 });
-	},
-
-	onSuccess: function(imageData) {
-	    var image = $('#myImage');
-	    image.src = "data:image/jpeg;base64," + imageData;
-	},
-
-	onFail: function(message) {
-	    alert('Failed because: ' + message);
-	}	
-}	

@@ -7955,10 +7955,14 @@ header h1 {
   text-transform: none;
   text-shadow: -1px -1px 0 #ffffff, 1px -1px 0 #ffffff, -1px 1px 0 #ffffff, 3px 3px 3px #000000, 1px 1px 0 #ffffff;
 }
-header #menu-button {
+header #menu-button,
+header #map-close {
   float: right;
   margin-top: 5px;
   margin-right: 5px;
+}
+header #map-close {
+  display: none;
 }
 #map-small {
   height: 200px;
@@ -8021,4 +8025,7 @@ header #menu-button {
   top: 0;
   left: 0;
   z-index: 9999;
+}
+#facebook-login {
+  display: none;
 }

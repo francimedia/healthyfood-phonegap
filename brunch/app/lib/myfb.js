@@ -1,11 +1,12 @@
 myfb = {
-	init: function() {
+	init: function(cb) {
 		if(isMobile != null) {
 			CDV.FB.init("506169639432441", 
 				function() {
 					alert('fail1');
 				}
 			);
+			if(cb) cb();
 		} else {
 			// unset custom FB lib
 			window.FB = null;
@@ -20,6 +21,7 @@ myfb = {
 				});
 
 				// Additional initialization code such as adding Event Listeners goes here
+				if(cb) cb();
 			};
 
 			// load original Facebook JS SDK for desktop testing

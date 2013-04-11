@@ -7,7 +7,9 @@ module.exports = Backbone.Router.extend({
     
     home: function() {
 		if (isMobile == null) {
-	        $('body').html(application.homeView.render().el)
+            $(function() {
+	           $('body').html(application.homeView.render().el)
+            });
 	        return;
 	    }
         document.addEventListener('deviceready', function() {
