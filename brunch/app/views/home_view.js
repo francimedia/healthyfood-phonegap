@@ -87,6 +87,22 @@ module.exports = View.extend({
 			});
 
 		});  
+
+		this.$('#menu').transition({ x: '17em' }, 1);
+		this.$('#menu').height($('html').height()); 
+
+		this.$('#menu-button').click(function() {
+			$('#menu, #menu-bg').show();
+			$('#menu-bg').height($('html').height()); 
+			$('#menu-bg').width($(window).width()); 
+			$('#menu').transition({ x: '0' }, 500, 'ease');
+		});
+
+		this.$('#menu-bg').click(function() {
+			$('#menu-bg').hide();
+			$('#menu').transition({ x: '17em' }, 500, 'ease');
+		});
+
     }
 });
 

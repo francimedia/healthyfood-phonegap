@@ -7890,121 +7890,6 @@ a.badge:focus {
 .affix {
   position: fixed;
 }
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-* {
-    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
-}
-
-body {
-    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
-    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
-    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
-    background-color:#E4E4E4;
-    background-image:linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #A7A7A7),
-        color-stop(0.51, #E4E4E4)
-    );
-    background-attachment:fixed;
-    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
-    font-size:12px;
-    height:100%;
-    margin:0px;
-    padding:0px;
-    text-transform:uppercase;
-    width:100%;
-}
-
-/* Portrait layout (default) */
-.app {
-    background:url(../img/logo.png) no-repeat center top; /* 170px x 200px */
-    position:absolute;             /* position in the center of the screen */
-    left:50%;
-    top:50%;
-    height:50px;                   /* text area height */
-    width:225px;                   /* text area width */
-    text-align:center;
-    padding:180px 0px 0px 0px;     /* image height is 200px (bottom 20px are overlapped with text) */
-    margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
-                                   /* offset horizontal: half of text area width */
-}
-
-/* Landscape layout (with min-width) */
-@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
-    .app {
-        background-position:left center;
-        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
-        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
-                                      /* offset horizontal: half of image width and text area width */
-    }
-}
-
-h1 {
-    font-size:24px;
-    font-weight:normal;
-    margin:0px;
-    overflow:visible;
-    padding:0px;
-    text-align:center;
-}
-
-.event {
-    border-radius:4px;
-    -webkit-border-radius:4px;
-    color:#FFFFFF;
-    font-size:12px;
-    margin:0px 30px;
-    padding:2px 0px;
-}
-
-.event.listening {
-    background-color:#333333;
-    display:block;
-}
-
-.event.received {
-    background-color:#4B946A;
-    display:none;
-}
-
-@keyframes fade {
-    from { opacity: 1.0; }
-    50% { opacity: 0.4; }
-    to { opacity: 1.0; }
-}
- 
-@-webkit-keyframes fade {
-    from { opacity: 1.0; }
-    50% { opacity: 0.4; }
-    to { opacity: 1.0; }
-}
- 
-.blink {
-    animation:fade 3000ms infinite;
-    -webkit-animation:fade 3000ms infinite;
-}
 * {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   /* make transparent link selection, adjust last value opacity 0 to 1.0 */
@@ -8051,14 +7936,23 @@ body {
 }
 header {
   background: #4a2b0c url(../images/app-background.png);
+  height: 40px;
 }
 header h1 {
-  font-size: 2em;
+  float: left;
+  padding-left: 10px;
+  margin: 0;
+  font-size: 1.5em;
   color: #6cb63f;
   font-family: 'lobster_1.3regular';
   font-weight: bold;
   text-transform: none;
   text-shadow: -1px -1px 0 #ffffff, 1px -1px 0 #ffffff, -1px 1px 0 #ffffff, 3px 3px 3px #000000, 1px 1px 0 #ffffff;
+}
+header #menu-button {
+  float: right;
+  margin-top: 5px;
+  margin-right: 5px;
 }
 #map-small {
   height: 200px;
@@ -8075,4 +7969,48 @@ header h1 {
 }
 #map-wrapper {
   position: relative;
+}
+#menu {
+  display: none;
+  background-color: #1d1d1d;
+  position: absolute;
+  right: 0;
+  max-height: 100%;
+  overflow: hidden;
+  width: 17em;
+  z-index: 10000;
+}
+#menu ul {
+  margin: 0;
+  padding: 0;
+}
+#menu ul li {
+  border-bottom: solid 1px #141414;
+  list-style-type: none;
+  padding: 15px 10px;
+  position: relative;
+  box-sizing: border-box;
+  margin: 0;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  font-weight: 300;
+}
+#menu ul li a {
+  color: #999;
+  text-decoration: none;
+}
+#menu ul li a strong {
+  position: relative;
+  font-size: 1.2em;
+  font-weight: 400;
+}
+#menu ul li a:hover {
+  text-decoration: none;
+}
+#menu-bg {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
 }

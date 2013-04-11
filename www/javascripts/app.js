@@ -115,22 +115,22 @@ window.require.register("lib/myfb", function(exports, require, module) {
   				}
   			);
   		} else {
-  			console.log(window.FB);
+  			// unset custom FB lib
   			window.FB = null;
-  			console.log(window.FB);
 
-  			  window.fbAsyncInit = function() {
-  			    // init the FB JS SDK
-  			    FB.init({
-  			      appId      : '506169639432441',                        // App ID from the app dashboard
-  			      // channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel file for x-domain comms
-  			      status     : true,                                 // Check Facebook Login status
-  			      xfbml      : true                                  // Look for social plugins on the page
-  			    });
+  			window.fbAsyncInit = function() {
+  				// init the FB JS SDK
+  				FB.init({
+  				  appId      : '506169639432441',                        // App ID from the app dashboard
+  				  // channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel file for x-domain comms
+  				  status     : true,                                 // Check Facebook Login status
+  				  xfbml      : true                                  // Look for social plugins on the page
+  				});
 
-  			    // Additional initialization code such as adding Event Listeners goes here
-  			  };
+  				// Additional initialization code such as adding Event Listeners goes here
+  			};
 
+  			// load original Facebook JS SDK for desktop testing
   			(function(d, s, id){
   				var js, fjs = d.getElementsByTagName(s)[0];
   				if (d.getElementById(id)) {return;}
@@ -361,6 +361,22 @@ window.require.register("views/home_view", function(exports, require, module) {
   			});
 
   		});  
+
+  		this.$('#menu').transition({ x: '17em' }, 1);
+  		this.$('#menu').height($('html').height()); 
+
+  		this.$('#menu-button').click(function() {
+  			$('#menu, #menu-bg').show();
+  			$('#menu-bg').height($('html').height()); 
+  			$('#menu-bg').width($(window).width()); 
+  			$('#menu').transition({ x: '0' }, 500, 'ease');
+  		});
+
+  		this.$('#menu-bg').click(function() {
+  			$('#menu-bg').hide();
+  			$('#menu').transition({ x: '17em' }, 500, 'ease');
+  		});
+
       }
   });
 
@@ -389,7 +405,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>";
+    return "\n<div id=\"menu\">\n\n	<ul>\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <h1>Healthy Food Compass</h1>\n    <button class=\"btn\" id=\"menu-button\">Menu</button>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>\n";
     });
 });
 window.require.register("views/view", function(exports, require, module) {

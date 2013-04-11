@@ -7,22 +7,22 @@ myfb = {
 				}
 			);
 		} else {
-			console.log(window.FB);
+			// unset custom FB lib
 			window.FB = null;
-			console.log(window.FB);
 
-			  window.fbAsyncInit = function() {
-			    // init the FB JS SDK
-			    FB.init({
-			      appId      : '506169639432441',                        // App ID from the app dashboard
-			      // channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel file for x-domain comms
-			      status     : true,                                 // Check Facebook Login status
-			      xfbml      : true                                  // Look for social plugins on the page
-			    });
+			window.fbAsyncInit = function() {
+				// init the FB JS SDK
+				FB.init({
+				  appId      : '506169639432441',                        // App ID from the app dashboard
+				  // channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel file for x-domain comms
+				  status     : true,                                 // Check Facebook Login status
+				  xfbml      : true                                  // Look for social plugins on the page
+				});
 
-			    // Additional initialization code such as adding Event Listeners goes here
-			  };
+				// Additional initialization code such as adding Event Listeners goes here
+			};
 
+			// load original Facebook JS SDK for desktop testing
 			(function(d, s, id){
 				var js, fjs = d.getElementsByTagName(s)[0];
 				if (d.getElementById(id)) {return;}
