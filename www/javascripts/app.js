@@ -261,9 +261,30 @@ window.require.register("views/home_view", function(exports, require, module) {
   			}); 
   		});    	
 
+  		this.$('#take-picture').click(function(event) {
+  			picture.take();
+  		});    		
+
       }
   });
-  
+
+  var picture = {
+  	take: function takePicture() {
+  		navigator.camera.getPicture(picture.onSuccess, picture.onFail, { 
+  			quality: 50,
+  		    destinationType: Camera.DestinationType.DATA_URL
+  		 });
+  	},
+
+  	onSuccess: function(imageData) {
+  	    var image = $('#myImage');
+  	    image.src = "data:image/jpeg;base64," + imageData;
+  	},
+
+  	onFail: function(message) {
+  	    alert('Failed because: ' + message);
+  	}	
+  }	
 });
 window.require.register("views/templates/home", function(exports, require, module) {
   module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -272,7 +293,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n ";
+    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>";
     });
 });
 window.require.register("views/view", function(exports, require, module) {
