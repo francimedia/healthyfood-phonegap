@@ -184,6 +184,9 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
+      	FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
+
+
   		var directionsService = new google.maps.DirectionsService();
 
   		var currentPosition = {
@@ -293,7 +296,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>";
+    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>";
     });
 });
 window.require.register("views/view", function(exports, require, module) {
