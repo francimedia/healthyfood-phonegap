@@ -179,6 +179,34 @@ window.require.register("lib/myfb", function(exports, require, module) {
 
   
 });
+window.require.register("lib/mylisteners", function(exports, require, module) {
+  mylisteners = {
+      init: function () {
+          
+          document.addEventListener("resume", function() {
+          	alert('resume');
+          }, false);
+          
+          document.addEventListener("online", function() {
+          	alert('online');
+          }, false);
+          
+          document.addEventListener("offline", function() {
+          	alert('offline');
+          }, false);
+          
+          document.addEventListener("pause", function() {
+          	alert('pause');
+          }, false);
+
+
+      } 
+  };
+
+  module.exports = mylisteners
+
+  
+});
 window.require.register("lib/mymap", function(exports, require, module) {
   mymap = {
   	
@@ -328,13 +356,18 @@ window.require.register("lib/router", function(exports, require, module) {
       },
       
       home: function() {
-  		if (isMobile == null) {
+  		if (isMobile == null) { 
               $(function() {
   	           $('body').html(application.homeView.render().el)
               });
   	        return;
   	    }
           document.addEventListener('deviceready', function() {
+              
+              // assign app listeners like "resume"
+              var mylisteners = require('lib/mylisteners');
+              mylisteners.init();
+              
               $('body').html(application.homeView.render().el)
           }, false);
       }
