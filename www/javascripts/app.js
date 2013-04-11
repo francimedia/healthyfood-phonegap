@@ -92,6 +92,34 @@ window.require.register("application", function(exports, require, module) {
           
           if (typeof Object.freeze === 'function') Object.freeze(this)
           
+          // this.bindEvents();
+      
+      },
+
+      // Bind Event Listeners
+      //
+      // Bind any events that are required on startup. Common events are:
+      // 'load', 'deviceready', 'offline', and 'online'.
+      bindEvents: function() {
+          document.addEventListener('deviceready', this.onDeviceReady, false);
+      },
+      // deviceready Event Handler
+      //
+      // The scope of 'this' is the event. In order to call the 'receivedEvent'
+      // function, we must explicity call 'app.receivedEvent(...);'
+      onDeviceReady: function() {
+          app.receivedEvent('deviceready');
+      },
+      // Update DOM on a Received Event
+      receivedEvent: function(id) {
+          var parentElement = document.getElementById(id);
+          var listeningElement = parentElement.querySelector('.listening');
+          var receivedElement = parentElement.querySelector('.received');
+
+          listeningElement.setAttribute('style', 'display:none;');
+          receivedElement.setAttribute('style', 'display:block;');
+
+          console.log('Received Event: ' + id);
       }
   }
 
@@ -145,8 +173,96 @@ window.require.register("views/home_view", function(exports, require, module) {
 
   module.exports = View.extend({
       id: 'home-view',
-      template: template
-  })
+      template: template,
+
+   
+      render: function(){
+          this.$el.html(this.template(this));
+          this.afterRender();
+          return this;
+      },
+
+      afterRender: function() {
+
+  		var directionsService = new google.maps.DirectionsService();
+
+  		var currentPosition = {
+  			lat: '40.739063',
+  			lng: '-74.005501'
+  		};
+
+  		var mapOptions = {
+  			center: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
+  			mapTypeId: google.maps.MapTypeId.ROADMAP,
+  			mapTypeControl: false,
+  			mapTypeControl: false,
+  			overviewMapControl: false,
+  			panControl: false,
+  			zoomControl: false,
+  			scaleControl: false,
+  			streetViewControl: false,
+  			zoom: 14,
+  			styles: [
+  			{
+  			  "stylers": [
+  			    { "saturation": -69 },
+  			    { "visibility": "simplified" }
+  			  ]
+  			}
+  			]
+  		}
+
+  		var domElement = this.$('#map-small');
+          var map =  new google.maps.Map(domElement.get(0), mapOptions);
+          this.map = map;
+
+          var userMarker;
+
+  		var onSuccess = function(position) {
+
+  			userMarker = new google.maps.Marker({
+  				position: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
+  				map: map
+  			});  
+
+  			// position.coords.accuracy
+  			map.panTo(userMarker.getPosition());
+   
+  		};
+
+  		// onError Callback receives a PositionError object
+  		//
+  		function onError(error) {
+  		    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
+  		}
+
+  		navigator.geolocation.getCurrentPosition(onSuccess, onError);
+
+  		this.$('#map-overlay').click(function(event) {
+  			$('#map-small').animate({
+  				height: $(window).height() - $('header').height()
+  			}, 250, 'swing', function() {
+  				$('#map-overlay').hide();
+  				google.maps.event.trigger(map, 'resize');
+
+  				$('header').click(function(event) {
+  					$('#map-small').animate({
+  						height: 200
+  					}, 250, 'swing', function() {
+  						$('#map-overlay').show();
+  						google.maps.event.trigger(map, 'resize');
+  						if(userMarker) {
+  							map.panTo(userMarker.getPosition());
+  						}
+  					}); 
+  				});    	
+
+
+  			}); 
+  		});    	
+
+      }
+  });
   
 });
 window.require.register("views/templates/home", function(exports, require, module) {
@@ -156,7 +272,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<header>\n	<div class=\"container\">\n		<h1>Banana Pancakes</h1>\n	</div>\n</header>\n\n<div class=\"container\">\n	\n	<p class=\"lead\">Congratulations, your Brunch project is set up and very yummy. Thanks for using Banana Pancakes!</p>\n	\n	<div class=\"row\">\n		\n		<div class=\"span4\">\n			<h2>Banana Pancakes I</h2>\n			<p><a href=\"http://allrecipes.com/recipe/banana-pancakes-i/\"><img src=\"http://i.imgur.com/YlAsp.jpg\" /></a></p>\n			<blockquote>\n				<p>Crowd pleasing banana pancakes made from scratch. A fun twist on ordinary pancakes.</p>\n				<small><a href=\"http://allrecipes.com/cook/1871017/profile.aspx\">ADDEAN1</a> from <cite title=\"allrecepies.com\">allrecepies.com</cite></small>\n			</blockquote>\n			<p><a class=\"btn\" href=\"http://allrecipes.com/recipe/banana-pancakes-i/\">View Recipe &raquo;</a></p>\n		</div>\n		\n		<div class=\"span4\">\n			<h2>Banana Brown Sugar Pancakes</h2>\n			<p><a href=\"http://allrecipes.com/recipe/banana-brown-sugar-pancakes\"><img src=\"http://i.imgur.com/Yaq7Y.jpg\" /></a></p>\n			<blockquote>\n				<p>This recipe I made because I wanted to use up some instant banana oatmeal I had. I don't use syrup on it because of the sweetness from the oatmeal and brown sugar.</p>\n				<small><a href=\"http://allrecipes.com/cook/10041806/profile.aspx\">Nscoober2</a> from <cite title=\"allrecepies.com\">allrecepies.com</cite></small>\n			</blockquote>\n			<p><a class=\"btn\" href=\"http://allrecipes.com/recipe/banana-brown-sugar-pancakes\">View Recipe &raquo;</a></p>\n		</div>\n		\n		<div class=\"span4\">\n			<h2>Banana Pancakes II</h2>\n			<p><a href=\"http://allrecipes.com/recipe/banana-pancakes-ii/\"><img src=\"http://i.imgur.com/dEh09.jpg\" /></a></p>\n			<blockquote>\n				<p>These yummy pancakes are a snap to make.</p>\n				<small><a href=\"http://allrecipes.com/cook/18911/profile.aspx\">sal</a> from <cite title=\"allrecepies.com\">allrecepies.com</cite></small>\n			</blockquote>\n			<p><a class=\"btn\" href=\"http://allrecipes.com/recipe/banana-pancakes-ii/\">View Recipe &raquo;</a></p>\n		</div>\n		\n	</div>\n	\n</div>\n";
+    return "<header>\n    <h1>Healthy Food Compass</h1>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n ";
     });
 });
 window.require.register("views/view", function(exports, require, module) {

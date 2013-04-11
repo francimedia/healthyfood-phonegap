@@ -20,6 +20,18 @@
 #
 -->
 <widget>
+
+    <name>HealthyFoodCompass</name>
+
+    <description>
+        Your Compass for Healthy Food!
+    </description>
+
+    <author href="https://www.francimedia.de" email="stephan@francimedia.de">
+        Stephan Alber
+    </author>
+
+
     <preference name="AllowInlineMediaPlayback" value="false" />
     <preference name="AutoHideSplashScreen" value="true" />
     <preference name="BackupWebStorage" value="cloud" />

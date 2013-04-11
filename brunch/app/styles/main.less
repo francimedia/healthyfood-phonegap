@@ -1,38 +1,89 @@
+* {
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
+    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
+     
+    font-family: Verdana, sans-serif;
+    font-size:12px;
+    height:100%;
+    margin:0px;
+    padding:0px;
+    text-transform:uppercase;
+    width:100%;
+
+
+    background-repeat: no-repeat;
+    background-attachment: fixed;    
+	background: #419436; /* Old browsers */
+	
+background-image: linear-gradient(bottom, rgb(65,148,54) 3%, rgb(154,206,121) 52%);
+background-image: -o-linear-gradient(bottom, rgb(65,148,54) 3%, rgb(154,206,121) 52%);
+background-image: -moz-linear-gradient(bottom, rgb(65,148,54) 3%, rgb(154,206,121) 52%);
+background-image: -webkit-linear-gradient(bottom, rgb(65,148,54) 3%, rgb(154,206,121) 52%);
+background-image: -ms-linear-gradient(bottom, rgb(65,148,54) 3%, rgb(154,206,121) 52%);
+
+background-image: -webkit-gradient(
+	linear,
+	left bottom,
+	left top,
+	color-stop(0.03, rgb(65,148,54)),
+	color-stop(0.52, rgb(154,206,121))
+);
+}
+
+@font-face {
+    font-family: 'lobster_1.3regular';
+    src: url('../fonts/lobster_1.3-webfont.eot');
+    src: url('../fonts/lobster_1.3-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/lobster_1.3-webfont.woff') format('woff'),
+         url('../fonts/lobster_1.3-webfont.ttf') format('truetype'),
+         url('../fonts/lobster_1.3-webfont.svg#lobster_1.3regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
 header {
-	
-	height: 94px;
-	margin-bottom: 30px;
-	background: #4277b7 url('http://i.imgur.com/Pm5hf.png') repeat-x;
-	
+    background: #4a2b0c url(../images/app-background.png);
+
 	h1 {
-		text-indent: -9999px;
-		background: url('http://i.imgur.com/t5AI4.png') no-repeat center;
-		width: 500px;
-		height: 94px;
-		margin: 0;
-		padding: 0;
-	}
-	
+		font-size: 2em;
+		color: #6cb63f;
+		font-family: 'lobster_1.3regular';
+		font-weight: bold;
+		text-transform: none; 
+        text-shadow:
+            -1px -1px 0 #fff,  
+            1px -1px 0 #fff,
+            -1px 1px 0 #fff,
+            3px 3px 3px #000,
+            1px 1px 0 #fff;
+        }
 }
 
-@media (max-width: 767px) {
-	
-	// make the header span the entire page width even on small screens
-	header {
-		margin-left: -20px;
-		margin-right: -20px;
-		padding-left: 20px;
-		padding-right: 20px;
-	}
-	
+#map-small {
+    height: 200px;
+    width: 100%;
 }
 
-@media (max-width: 540px) {
-	
-	// when the page is too narrow for the 500px logo, switch to a smaller, 300px version (also center it)
-	header h1 {
-		background: url('http://i.imgur.com/8LfcwUs.png') no-repeat center;
-		width: 100%;
-	}
-	
+#map-overlay {
+    height: 200px;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0; 
+    z-index: 1000;
+    display: block;
+}
+
+#map-wrapper {
+    position: relative;
 }
