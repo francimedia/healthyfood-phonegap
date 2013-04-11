@@ -184,8 +184,10 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
-      	FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
-
+      	// for testing only on ios
+      	if($('body').width()<1000) {
+      		FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
+      	}
 
   		var directionsService = new google.maps.DirectionsService();
 

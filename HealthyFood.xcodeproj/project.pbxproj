@@ -46,9 +46,9 @@
 		D4877B3F1715F07400B5C821 /* healthy-food-compass-114.png in Resources */ = {isa = PBXBuildFile; fileRef = D4877B3E1715F07400B5C821 /* healthy-food-compass-114.png */; };
 		D4A0D8761607E02300AEF8BB /* Default-568h@2x~iphone.png in Resources */ = {isa = PBXBuildFile; fileRef = D4A0D8751607E02300AEF8BB /* Default-568h@2x~iphone.png */; };
 		D4D23ADF17163FDE00F466F4 /* FacebookSDKResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = D4D23ADE17163FDE00F466F4 /* FacebookSDKResources.bundle */; };
-		D4D23B06171640F500F466F4 /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D23B05171640F500F466F4 /* Social.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		D4D23B081716410900F466F4 /* Accounts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D23B071716410900F466F4 /* Accounts.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		D4D23B0A1716411100F466F4 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D23B091716411100F466F4 /* AdSupport.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		D4D23B06171640F500F466F4 /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D23B05171640F500F466F4 /* Social.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		D4D23B081716410900F466F4 /* Accounts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D23B071716410900F466F4 /* Accounts.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		D4D23B0A1716411100F466F4 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D23B091716411100F466F4 /* AdSupport.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		D4D23B0D1716414A00F466F4 /* FacebookConnectPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = D4D23B0C1716414A00F466F4 /* FacebookConnectPlugin.m */; };
 		F840E1F1165FE0F500CFE078 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = F840E1F0165FE0F500CFE078 /* config.xml */; };
 /* End PBXBuildFile section */
@@ -589,7 +589,7 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "HealthyFood/HealthyFood-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				OTHER_LDFLAGS = (
 					"-weak_framework",
 					CoreFoundation,
@@ -605,7 +605,7 @@
 					"-lsqlite3.0",
 				);
 				PRODUCT_NAME = HealthyFood;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -620,7 +620,7 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "HealthyFood/HealthyFood-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				OTHER_LDFLAGS = (
 					"-weak_framework",
 					CoreFoundation,
@@ -636,7 +636,7 @@
 					"-lsqlite3.0",
 				);
 				PRODUCT_NAME = HealthyFood;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
