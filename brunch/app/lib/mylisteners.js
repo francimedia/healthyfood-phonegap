@@ -2,7 +2,10 @@ mylisteners = {
     init: function () {
         
         document.addEventListener("resume", function() {
-        	alert('resume');
+        	// alert('resume');
+            // on resume the device should update the user locaiton 
+           var mymap   = require('lib/mymap');
+           mymap.userLocation.get();
         }, false);
         
         document.addEventListener("online", function() {
@@ -14,7 +17,7 @@ mylisteners = {
         }, false);
         
         document.addEventListener("pause", function() {
-        	alert('pause');
+            //	alert('pause');
         }, false);
 
 

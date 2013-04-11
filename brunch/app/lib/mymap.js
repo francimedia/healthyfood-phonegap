@@ -60,6 +60,12 @@ mymap = {
 	},
 
 	addUserMarker: function(latitude,longitude,panTo) {
+		
+		// remove old existing marker before adding a new one
+		if(mymap.userMarker) {
+			mymap.userMarker.setMap(null);
+		}
+
 		mymap.userMarker = new google.maps.Marker({
 			position: new google.maps.LatLng(latitude, longitude),
 			map: mymap.gmap
