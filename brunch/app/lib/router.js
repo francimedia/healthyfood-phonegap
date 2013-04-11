@@ -6,6 +6,12 @@ module.exports = Backbone.Router.extend({
     },
     
     home: function() {
-        $('body').html(application.homeView.render().el)
+		if (isMobile == null) {
+	        $('body').html(application.homeView.render().el)
+	        return;
+	    }
+        document.addEventListener('deviceready', function() {
+            $('body').html(application.homeView.render().el)
+        }, false);
     }
 })

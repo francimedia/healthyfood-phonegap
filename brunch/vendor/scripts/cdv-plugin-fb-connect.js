@@ -1,7 +1,7 @@
 CDV = ( typeof CDV == 'undefined' ? {} : CDV );
 var cordova = window.cordova || window.Cordova;
 CDV.FB = {
-  init: function(apiKey, cb, fail) {
+  init: function(apiKey, fail) {
     // create the fb-root element if it doesn't exist
     if (!document.getElementById('fb-root')) {
       var elem = document.createElement('div');
@@ -21,8 +21,7 @@ CDV.FB = {
         FB.Auth.setAuthResponse(authResponse, 'connected');
        }
       }
-      console.log('Cordova Facebook Connect plugin initialized successfully.');      
-      if (cb) cb();
+      console.log('Cordova Facebook Connect plugin initialized successfully.');
     }, (fail?fail:null), 'org.apache.cordova.facebook.Connect', 'init', [apiKey]);
   },
   login: function(params, cb, fail) {

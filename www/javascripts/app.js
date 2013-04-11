@@ -83,51 +83,18 @@ window.require.register("application", function(exports, require, module) {
   // Application bootstrapper.
   Application = {
       initialize: function() {
-          
           var HomeView = require('views/home_view')
             , Router   = require('lib/router')
           
           this.homeView = new HomeView()
           this.router   = new Router()
           
-          if (typeof Object.freeze === 'function') Object.freeze(this)
-          
-          this.bindEvents();
-      
-      },
-
-      // Bind Event Listeners
-      //
-      // Bind any events that are required on startup. Common events are:
-      // 'load', 'deviceready', 'offline', and 'online'.
-      bindEvents: function() {
-          document.addEventListener('deviceready', this.onDeviceReady, false);
-      },
-      // deviceready Event Handler
-      //
-      // The scope of 'this' is the event. In order to call the 'receivedEvent'
-      // function, we must explicity call 'app.receivedEvent(...);'
-      onDeviceReady: function() {
-          this.receivedEvent('deviceready');
-      },
-      // Update DOM on a Received Event
-      receivedEvent: function(id) {
-          var parentElement = document.getElementById(id);
-          var listeningElement = parentElement.querySelector('.listening');
-          var receivedElement = parentElement.querySelector('.received');
-
-          listeningElement.setAttribute('style', 'display:none;');
-          receivedElement.setAttribute('style', 'display:block;');
-
-          console.log('Received Event: ' + id);
-      }
+          if (typeof Object.freeze === 'function') Object.freeze(this)    
+      } 
   }
 
   module.exports = Application
-
-  window.onerror = function(message, url, lineNumber) {
-      console.log("Error: "+message+" in "+url+" at line "+lineNumber);
-  }
+   
 });
 window.require.register("initialize", function(exports, require, module) {
   var application = require('application')
@@ -138,6 +105,127 @@ window.require.register("initialize", function(exports, require, module) {
   })
   
 });
+window.require.register("lib/myfb", function(exports, require, module) {
+  myfb = {
+  	init: function() {
+  		if(isMobile != null) {
+  			CDV.FB.init("506169639432441", 
+  				function() {
+  					alert('fail1');
+  				}
+  			);
+  		} else {
+  			console.log(window.FB);
+  			window.FB = null;
+  			console.log(window.FB);
+
+  			  window.fbAsyncInit = function() {
+  			    // init the FB JS SDK
+  			    FB.init({
+  			      appId      : '506169639432441',                        // App ID from the app dashboard
+  			      // channelUrl : '//WWW.YOUR_DOMAIN.COM/channel.html', // Channel file for x-domain comms
+  			      status     : true,                                 // Check Facebook Login status
+  			      xfbml      : true                                  // Look for social plugins on the page
+  			    });
+
+  			    // Additional initialization code such as adding Event Listeners goes here
+  			  };
+
+  			(function(d, s, id){
+  				var js, fjs = d.getElementsByTagName(s)[0];
+  				if (d.getElementById(id)) {return;}
+  				js = d.createElement(s); js.id = id;
+  				js.src = "https://connect.facebook.net/en_US/all.js";
+  				fjs.parentNode.insertBefore(js, fjs);
+  			}(document, 'script', 'facebook-jssdk'));	
+  			console.log(window.FB);		
+  		}	
+  	}
+  }
+
+
+  module.exports = myfb
+
+  
+});
+window.require.register("lib/mymap", function(exports, require, module) {
+  mymap = {
+  	
+  	gmap: null,
+  	
+  	userMarker: null,
+
+  	currentPosition: {
+  		lat: '40.739063',
+  		lng: '-74.005501'
+  	},
+
+  	init: function(mapEl) {
+
+  		var directionsService = new google.maps.DirectionsService();
+
+  		
+
+  		var mapOptions = {
+  			center: new google.maps.LatLng(mymap.currentPosition.lat, mymap.currentPosition.lng),
+  			mapTypeId: google.maps.MapTypeId.ROADMAP,
+  			mapTypeControl: false,
+  			mapTypeControl: false,
+  			overviewMapControl: false,
+  			panControl: false,
+  			zoomControl: false,
+  			scaleControl: false,
+  			streetViewControl: false,
+  			zoom: 14,
+  			styles: [
+  			{
+  			  "stylers": [
+  			    { "saturation": -69 },
+  			    { "visibility": "simplified" }
+  			  ]
+  			}
+  			]
+  		}
+
+          mymap.gmap =  new google.maps.Map(mapEl.get(0), mapOptions);
+
+  		var onSuccess = function(position) {
+
+  			mymap.userMarker = new google.maps.Marker({
+  				position: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
+  				map: mymap.gmap
+  			});  
+
+  			// position.coords.accuracy
+  			mymap.gmap.panTo(userMarker.getPosition());
+   
+  		};
+
+  		// onError Callback receives a PositionError object
+  		//
+  		function onError(error) {
+  		    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
+
+
+  			mymap.userMarker = new google.maps.Marker({
+  				position: new google.maps.LatLng(mymap.currentPosition.lat, mymap.currentPosition.lng),
+  				map: mymap.gmap
+  			});  
+
+  			// position.coords.accuracy
+  			mymap.gmap.panTo(userMarker.getPosition());
+  					    
+  		}
+
+  		navigator.geolocation.getCurrentPosition(onSuccess, onError);
+
+  		return mymap.gmap;
+
+  	}
+  }
+
+  module.exports = mymap
+});
 window.require.register("lib/router", function(exports, require, module) {
   var application = require('application')
 
@@ -147,7 +235,13 @@ window.require.register("lib/router", function(exports, require, module) {
       },
       
       home: function() {
-          $('body').html(application.homeView.render().el)
+  		if (isMobile == null) {
+  	        $('body').html(application.homeView.render().el)
+  	        return;
+  	    }
+          document.addEventListener('deviceready', function() {
+              $('body').html(application.homeView.render().el)
+          }, false);
       }
   })
   
@@ -173,6 +267,8 @@ window.require.register("models/model", function(exports, require, module) {
 window.require.register("views/home_view", function(exports, require, module) {
   var View     = require('./view')
     , template = require('./templates/home')
+    , mymap   = require('lib/mymap')
+    , myfb   = require('lib/myfb')
 
   module.exports = View.extend({
       id: 'home-view',
@@ -187,75 +283,18 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
-      	document.addEventListener("deviceready", function() {
-      		// FB.init({ appId: "506169639432441", nativeInterface: CDV.FB, useCachedDialogs: false });
-      		CDV.FB.init("506169639432441", function() {
-  					CDV.FB.getLoginStatus(function(response) {
-  		    			$('#facebook-login').hide();
-  		    		}, function() {
-  		    			alert('fail1');
-  		    		});
-  				},
-      			function() {
-      				alert('fail1');
-      			}
-      		);
-
-      	}, false);
-
-  		var directionsService = new google.maps.DirectionsService();
-
-  		var currentPosition = {
-  			lat: '40.739063',
-  			lng: '-74.005501'
-  		};
-
-  		var mapOptions = {
-  			center: new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
-  			mapTypeId: google.maps.MapTypeId.ROADMAP,
-  			mapTypeControl: false,
-  			mapTypeControl: false,
-  			overviewMapControl: false,
-  			panControl: false,
-  			zoomControl: false,
-  			scaleControl: false,
-  			streetViewControl: false,
-  			zoom: 14,
-  			styles: [
-  			{
-  			  "stylers": [
-  			    { "saturation": -69 },
-  			    { "visibility": "simplified" }
-  			  ]
-  			}
-  			]
-  		}
-
-  		var domElement = this.$('#map-small');
-          var map =  new google.maps.Map(domElement.get(0), mapOptions);
-          this.map = map;
-
-          var userMarker;
-
-  		var onSuccess = function(position) {
-
-  			userMarker = new google.maps.Marker({
-  				position: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
-  				map: map
-  			});  
-
-  			// position.coords.accuracy
-  			map.panTo(userMarker.getPosition());
+      	myfb.init();
    
-  		};
+   
+      	if(isMobile != null) {
+  			CDV.FB.getLoginStatus(function(response) {
+  				$('#facebook-login').hide();
+  			}, function() {
+  				alert('fail1');
+  			});   
+  		} 	
 
-  		// onError Callback receives a PositionError object
-  		//
-  		function onError(error) {
-  		    console.log('code: '    + error.code    + '\n' + 'message: ' + error.message + '\n');
-  		}
-
-  		navigator.geolocation.getCurrentPosition(onSuccess, onError);
+      	var map = mymap.init(this.$('#map-small'));
 
   		this.$('#map-overlay').click(function(event) {
   			$('#map-small').animate({
@@ -285,9 +324,10 @@ window.require.register("views/home_view", function(exports, require, module) {
   		});    		
 
 
+
   		this.$('#facebook-login').click(function(event) {
   			alert('Login');
-
+  			return;
     			CDV.FB.getLoginStatus(function(response) {
       			$('#facebook-login').hide();
       		}, function() {
