@@ -1,7 +1,9 @@
 mymenu = {
+	// update in CSS file, too :-(
+	offset: '21em',
 	init: function(_this) { 
 
-		_this.$('#menu').transition({ x: '18em' }, 1);
+		_this.$('#menu').transition({ x: mymenu.offset }, 1);
 		_this.$('#menu').height($('html').height()); 
 
 		_this.$('#menu-button').click(function() {
@@ -21,7 +23,7 @@ mymenu = {
 	},
 	close: function() {
 		$('#menu-bg').hide();
-		$('#menu').transition({ x: '18em' }, 500, 'ease', function() {
+		$('#menu').transition({ x: mymenu.offset }, 500, 'ease', function() {
 			$('#menu').hide();
 		});
 	}

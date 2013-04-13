@@ -2,14 +2,20 @@ mymapbox = {
 	
 	mbox: null,
 	
-	zoom: 11,
 	userMarker: null,
 	userMarkerLayer: null,
 	markerLayer: null,
+	offset: 0,
 
 	currentPosition: {
         lat: 40.73269,
         lon: -73.99498
+    },
+
+    mapSize: {
+    	'small': {
+    		y: 200
+    	}
     },
 
     markerSymbols: {
@@ -36,14 +42,24 @@ mymapbox = {
 
 	loadMapbox: function(mapEl) { 
 		$.getScript("http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js", function(data, textStatus, jqxhr) {
-				mymapbox.mbox = mapbox.map(mapEl).zoom(mymapbox.zoom).center(mymapbox.currentPosition);
-				mymapbox.mbox.addLayer(mapbox.layer().id('examples.map-4l7djmvo'));
 
-				// add layer for venue markers
-		        mymapbox.markerLayer = mapbox.markers.layer();
-		        mymapbox.mbox.addLayer(mymapbox.markerLayer);
+			mymapbox.mbox = mapbox.map(mapEl).zoom(mymapbox.getZoom('overview')).center(mymapbox.currentPosition);
 
-		        mymapbox.userLocation.get();
+			var retina = window.devicePixelRatio >= 2;
+			if (retina) {
+			    // Retina tiles are sized 1/2 of normal tiles for twice the pixel
+			    // density
+			    mymapbox.mbox.tileSize = { x: 128, y: 128 };
+			}
+
+			mymapbox.mbox.addLayer(mapbox.layer().id('examples.map-4l7djmvo'));
+
+			// add layer for venue markers
+	        mymapbox.markerLayer = mapbox.markers.layer();
+	        mymapbox.mbox.addLayer(mymapbox.markerLayer);
+
+	        mymapbox.userLocation.get();
+	        mymapbox.setMapSizeSmall();
 
 		});
 	},
@@ -100,12 +116,60 @@ mymapbox = {
 		}
 	},
 
+	// figure out the perfect zoom level for the current situation
+	getZoom: function(type) {
+		switch(type) {
+			case 'overview':
+				return 13;
+				break;
+			case 'nearbyZoom':
+				return 15;
+				break;
+			case 'nearby':
+				return 14;
+				break;
+			default:
+				return 14;
+				break;
+		}
+	},
+
 	centerUserMarker: function() {
-        mymapbox.mbox.zoom(13).center(mymapbox.currentPosition);
+        mymapbox.mbox.zoom(mymapbox.getZoom('nearby')).center(mymapbox.currentPosition);
         mymapbox.getVenues(mymapbox.currentPosition);        
 	},
 
 	fireResize: function() {
+		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
+	},
+
+	setMapSizeSmall: function() {
+		// var offset = $('html').height() - $('header').height() - parseInt($('#venue-list').css('top'));
+		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) + $('header').height())) + ($('html').height()/5) ;
+		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) )) + ($('html').height()/5) ;
+		// var offset = 0;
+
+
+		
+		// var offset = parseInt($('#venue-list').css('top'));
+
+		var headerHeight = $('header').height(); // 50 (ex)
+		var mapHeight = $('html').height(); // 550
+		var mapCenter = ($('html').height() / 2); // 225
+		var venueListOffset = parseInt($('#venue-list').css('top')); // 300
+		var venueListOffsetMarginTop = parseInt($('#venue-list').css('margin-top')); // -20; 
+
+
+		var offset = ((mapHeight - (venueListOffset/2)) / -2) + (1.5*headerHeight);
+		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('html').height() - offset});
+
+		mymapbox.offset = offset * 1.5;
+		$('#map-small').transition({ y: mymapbox.offset}, 0, 'ease');
+
+ 
+	},
+
+	setMapSizeLarge: function() {
 		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
 	},
 

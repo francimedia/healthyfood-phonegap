@@ -1,7 +1,7 @@
 <script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js'></script>
 <div id="menu">
-
-	<ul>
+    <div id="menu-header"><h1>Menu</h1></div>
+	<ul id="menu-items">
         <li class="active">
             <a href="#">
                 <strong>Home</strong>
@@ -18,24 +18,61 @@
 <div id="menu-bg"></div>
 
 <header>
-    <h1>Healthy Food Compass</h1>
-    <button class="btn" id="menu-button">Menu</button>
+    <img src="./images/header-icon.png" alt="" id="logo" alt="Healthy Food Compass" /> 
+    <img src="./images/menu.png" alt="" id="menu-button" /> 
     <button class="btn" id="map-close">Close</button>
 </header> 
-<div id="map-wrapper">
-	<a href="#" id="map-overlay"></a> 
-	<div id="map-small"></div> 
+<div id="content">
+    <div id="map-wrapper">
+    	<a href="#" id="map-overlay"></a> 
+    	<div id="map-small"></div> 
+        <div id="venue-list">
+            <ul>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+                <li class="accept">
+                    <a href="#subpage" data-router="section" data-name="Fruit Dealer" data-street="6th Ave." data-distance="1.5 mi" data-venueid="233">                         <div class="right" style="text-align: right">1.5 mi<br><span style="color: #ff762c;">SAVE: 75%</span><!--                             <span class="icon brand twitter-2"></span>                             <span class="icon brand facebook-2"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>
+            </ul>
+
+        </div> 
+    </div>
+
+    <div class="btn-toolbar" style="display: none; padding: 20px;">
+      <div class="btn-group">
+        <button class="btn" id="take-picture">Take Picture</button>
+      </div>
+      <div class="btn-group">
+        <button class="btn" id="facebook-login">Login with Facebook</button>
+      </div>
+    </div>
+
+    <div id="myImage"></div>
+
+    <div id="fb-root"></div>
 </div>
-
-<div class="btn-toolbar" style="padding: 20px;">
-  <div class="btn-group">
-    <button class="btn" id="take-picture">Take Picture</button>
-  </div>
-  <div class="btn-group">
-    <button class="btn" id="facebook-login">Login with Facebook</button>
-  </div>
-</div>
-
-<div id="myImage"></div>
-
-<div id="fb-root"></div>

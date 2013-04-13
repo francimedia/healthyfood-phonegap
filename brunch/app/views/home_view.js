@@ -20,6 +20,70 @@ module.exports = View.extend({
 
     afterRender: function() {
 
+    	this.$('#content').height($('html').height() - $('header').height());
+
+
+		var queue = false;
+		var queues = [];
+
+
+		// document.getElementById('box').scrollTop
+		setTimeout(function(){
+			var scrollVal = 150;
+			$('#content').scrollTo(scrollVal);
+			setTimeout(function(){
+				$('#map-small').transition({ y: (scrollVal/2)-(offset*1.5)}, 100, 'ease');
+			},100);
+		},200);
+
+		this.$('#content').scroll(function(eventData) {
+
+
+		  var offset = mymapbox.offset * -0.65; 
+
+		  var scrollVal = $('#content').scrollTop();
+
+		  if(scrollVal < 500) {
+		  	queue = true;
+		  	// var height = 200-(scrollVal);
+		  	// console.log(height);
+		  	// $('#map-small').transition({ y: 10 * Math.round(scrollVal/20)}, 10, 'ease');
+			
+			var animationTime = 250;
+
+		  	// check whether no new scroll request is coming in
+			setTimeout(function() {
+				// reset queue > execute scroll
+		  		queue = false;
+		  	}, animationTime-10);
+
+			// add scrolling animation to queue
+			queues.push(function() {
+		  		// $('#map-small').transition({ y: 5 * Math.round(scrollVal/10)}, 200, 'ease');
+		  		$('#map-small').transition({ y: (scrollVal/2)-(offset*1.5)}, animationTime, 'ease');
+		  	});
+
+		  	// check the queue after 200ms
+		  	setTimeout(function() {
+		  		
+		  		// new scroll invoked, so please wait..
+		  		if(queue || queues.length == 0) {
+		  			return;
+		  		}
+
+		  		// execute the latest queue
+		  		console.log(queues);
+		  		queues[(queues.length-1)]();
+
+		  		// reset queue
+		  		queues = [];
+		  	}, animationTime);
+		  	
+		  	// mymapbox.mbox.setSize({x: $('#map-small').width(), y: height});
+		  	// mymapbox.centerUserMarker();
+		  }
+		});    	
+
     	// var map = mymap.init(this.$('#map-small'));
     	var map = mymapbox.init('map-small');
 
@@ -72,30 +136,27 @@ module.exports = View.extend({
 
 		myfb.init(callback);
 
-		this.$('#map-overlay').click(function(event) {
-			$('#map-small').animate({
-				height: $(window).height() - $('header').height()
-			}, 250, 'swing', function() {
-				$('#map-overlay').hide();
-				mymapbox.fireResize();
+		this.$('#map-small').height($(window).height() - $('header').height());
+		// this.$('#venue-list').height($(window).height() - $('header').height() - 200);
 
-				$('header').click(function(event) {
-					$('#map-small').animate({
-						height: 200
-					}, 250, 'swing', function() {
-						$('#map-overlay').show();
-						console.log($('#map-overlay'));
-						mymapbox.fireResize();
-						mymapbox.centerUserMarker();
-					}); 
-				});
-			}); 
+		this.$('header').click(function(event) {
+			$('#map-overlay').show();
+ 			$('#venue-list').transition({ y: 0 }, 600, function() {
+ 				mymapbox.setMapSizeSmall();
+ 				mymapbox.centerUserMarker();
+ 			});
+		});
+
+		this.$('#map-overlay').click(function(event) {
+			$('#map-overlay').hide();
+			$('#map-small').height($(window).height() - $('header').height());
+			mymapbox.setMapSizeLarge();
+			$('#venue-list').transition({ y: $('#venue-list').height() }, 1000);
 		});    	
 
 		this.$('#take-picture').click(function(event) {
 			picture.take();
 		});    		
-
 
 
 		this.$('#facebook-login').click(function(event) {

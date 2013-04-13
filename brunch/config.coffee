@@ -52,7 +52,8 @@ exports.config =
                     # 'vendor/scripts/google-maps.js',
                     'vendor/scripts/mapbox.js',
                     'vendor/scripts/cdv-plugin-fb-connect.js',
-                    'vendor/scripts/facebook-js-sdk.js'
+                    'vendor/scripts/facebook-js-sdk.js',
+                    'vendor/scripts/jquery.scrollTo.js'
 
                 ]
                 

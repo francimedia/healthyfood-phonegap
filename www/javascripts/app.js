@@ -306,14 +306,20 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
   	
   	mbox: null,
   	
-  	zoom: 11,
   	userMarker: null,
   	userMarkerLayer: null,
   	markerLayer: null,
+  	offset: 0,
 
   	currentPosition: {
           lat: 40.73269,
           lon: -73.99498
+      },
+
+      mapSize: {
+      	'small': {
+      		y: 200
+      	}
       },
 
       markerSymbols: {
@@ -340,14 +346,24 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
 
   	loadMapbox: function(mapEl) { 
   		$.getScript("http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js", function(data, textStatus, jqxhr) {
-  				mymapbox.mbox = mapbox.map(mapEl).zoom(mymapbox.zoom).center(mymapbox.currentPosition);
-  				mymapbox.mbox.addLayer(mapbox.layer().id('examples.map-4l7djmvo'));
 
-  				// add layer for venue markers
-  		        mymapbox.markerLayer = mapbox.markers.layer();
-  		        mymapbox.mbox.addLayer(mymapbox.markerLayer);
+  			mymapbox.mbox = mapbox.map(mapEl).zoom(mymapbox.getZoom('overview')).center(mymapbox.currentPosition);
 
-  		        mymapbox.userLocation.get();
+  			var retina = window.devicePixelRatio >= 2;
+  			if (retina) {
+  			    // Retina tiles are sized 1/2 of normal tiles for twice the pixel
+  			    // density
+  			    mymapbox.mbox.tileSize = { x: 128, y: 128 };
+  			}
+
+  			mymapbox.mbox.addLayer(mapbox.layer().id('examples.map-4l7djmvo'));
+
+  			// add layer for venue markers
+  	        mymapbox.markerLayer = mapbox.markers.layer();
+  	        mymapbox.mbox.addLayer(mymapbox.markerLayer);
+
+  	        mymapbox.userLocation.get();
+  	        mymapbox.setMapSizeSmall();
 
   		});
   	},
@@ -404,12 +420,60 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
   		}
   	},
 
+  	// figure out the perfect zoom level for the current situation
+  	getZoom: function(type) {
+  		switch(type) {
+  			case 'overview':
+  				return 13;
+  				break;
+  			case 'nearbyZoom':
+  				return 15;
+  				break;
+  			case 'nearby':
+  				return 14;
+  				break;
+  			default:
+  				return 14;
+  				break;
+  		}
+  	},
+
   	centerUserMarker: function() {
-          mymapbox.mbox.zoom(13).center(mymapbox.currentPosition);
+          mymapbox.mbox.zoom(mymapbox.getZoom('nearby')).center(mymapbox.currentPosition);
           mymapbox.getVenues(mymapbox.currentPosition);        
   	},
 
   	fireResize: function() {
+  		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
+  	},
+
+  	setMapSizeSmall: function() {
+  		// var offset = $('html').height() - $('header').height() - parseInt($('#venue-list').css('top'));
+  		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) + $('header').height())) + ($('html').height()/5) ;
+  		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) )) + ($('html').height()/5) ;
+  		// var offset = 0;
+
+
+  		
+  		// var offset = parseInt($('#venue-list').css('top'));
+
+  		var headerHeight = $('header').height(); // 50 (ex)
+  		var mapHeight = $('html').height(); // 550
+  		var mapCenter = ($('html').height() / 2); // 225
+  		var venueListOffset = parseInt($('#venue-list').css('top')); // 300
+  		var venueListOffsetMarginTop = parseInt($('#venue-list').css('margin-top')); // -20; 
+
+
+  		var offset = ((mapHeight - (venueListOffset/2)) / -2) + (1.5*headerHeight);
+  		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('html').height() - offset});
+
+  		mymapbox.offset = offset * 1.5;
+  		$('#map-small').transition({ y: mymapbox.offset}, 0, 'ease');
+
+   
+  	},
+
+  	setMapSizeLarge: function() {
   		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
   	},
 
@@ -467,9 +531,11 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
 });
 window.require.register("lib/mymenu", function(exports, require, module) {
   mymenu = {
+  	// update in CSS file, too :-(
+  	offset: '21em',
   	init: function(_this) { 
 
-  		_this.$('#menu').transition({ x: '18em' }, 1);
+  		_this.$('#menu').transition({ x: mymenu.offset }, 1);
   		_this.$('#menu').height($('html').height()); 
 
   		_this.$('#menu-button').click(function() {
@@ -489,7 +555,7 @@ window.require.register("lib/mymenu", function(exports, require, module) {
   	},
   	close: function() {
   		$('#menu-bg').hide();
-  		$('#menu').transition({ x: '18em' }, 500, 'ease', function() {
+  		$('#menu').transition({ x: mymenu.offset }, 500, 'ease', function() {
   			$('#menu').hide();
   		});
   	}
@@ -588,6 +654,70 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
+      	this.$('#content').height($('html').height() - $('header').height());
+
+
+  		var queue = false;
+  		var queues = [];
+
+
+  		// document.getElementById('box').scrollTop
+  		setTimeout(function(){
+  			var scrollVal = 150;
+  			$('#content').scrollTo(scrollVal);
+  			setTimeout(function(){
+  				$('#map-small').transition({ y: (scrollVal/2)-(offset*1.5)}, 100, 'ease');
+  			},100);
+  		},200);
+
+  		this.$('#content').scroll(function(eventData) {
+
+
+  		  var offset = mymapbox.offset * -0.65; 
+
+  		  var scrollVal = $('#content').scrollTop();
+
+  		  if(scrollVal < 500) {
+  		  	queue = true;
+  		  	// var height = 200-(scrollVal);
+  		  	// console.log(height);
+  		  	// $('#map-small').transition({ y: 10 * Math.round(scrollVal/20)}, 10, 'ease');
+  			
+  			var animationTime = 250;
+
+  		  	// check whether no new scroll request is coming in
+  			setTimeout(function() {
+  				// reset queue > execute scroll
+  		  		queue = false;
+  		  	}, animationTime-10);
+
+  			// add scrolling animation to queue
+  			queues.push(function() {
+  		  		// $('#map-small').transition({ y: 5 * Math.round(scrollVal/10)}, 200, 'ease');
+  		  		$('#map-small').transition({ y: (scrollVal/2)-(offset*1.5)}, animationTime, 'ease');
+  		  	});
+
+  		  	// check the queue after 200ms
+  		  	setTimeout(function() {
+  		  		
+  		  		// new scroll invoked, so please wait..
+  		  		if(queue || queues.length == 0) {
+  		  			return;
+  		  		}
+
+  		  		// execute the latest queue
+  		  		console.log(queues);
+  		  		queues[(queues.length-1)]();
+
+  		  		// reset queue
+  		  		queues = [];
+  		  	}, animationTime);
+  		  	
+  		  	// mymapbox.mbox.setSize({x: $('#map-small').width(), y: height});
+  		  	// mymapbox.centerUserMarker();
+  		  }
+  		});    	
+
       	// var map = mymap.init(this.$('#map-small'));
       	var map = mymapbox.init('map-small');
 
@@ -640,30 +770,27 @@ window.require.register("views/home_view", function(exports, require, module) {
 
   		myfb.init(callback);
 
-  		this.$('#map-overlay').click(function(event) {
-  			$('#map-small').animate({
-  				height: $(window).height() - $('header').height()
-  			}, 250, 'swing', function() {
-  				$('#map-overlay').hide();
-  				mymapbox.fireResize();
+  		this.$('#map-small').height($(window).height() - $('header').height());
+  		// this.$('#venue-list').height($(window).height() - $('header').height() - 200);
 
-  				$('header').click(function(event) {
-  					$('#map-small').animate({
-  						height: 200
-  					}, 250, 'swing', function() {
-  						$('#map-overlay').show();
-  						console.log($('#map-overlay'));
-  						mymapbox.fireResize();
-  						mymapbox.centerUserMarker();
-  					}); 
-  				});
-  			}); 
+  		this.$('header').click(function(event) {
+  			$('#map-overlay').show();
+   			$('#venue-list').transition({ y: 0 }, 600, function() {
+   				mymapbox.setMapSizeSmall();
+   				mymapbox.centerUserMarker();
+   			});
+  		});
+
+  		this.$('#map-overlay').click(function(event) {
+  			$('#map-overlay').hide();
+  			$('#map-small').height($(window).height() - $('header').height());
+  			mymapbox.setMapSizeLarge();
+  			$('#venue-list').transition({ y: $('#venue-list').height() }, 1000);
   		});    	
 
   		this.$('#take-picture').click(function(event) {
   			picture.take();
   		});    		
-
 
 
   		this.$('#facebook-login').click(function(event) {
@@ -715,7 +842,7 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js'></script>\n<div id=\"menu\">\n\n	<ul>\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <h1>Healthy Food Compass</h1>\n    <button class=\"btn\" id=\"menu-button\">Menu</button>\n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"map-wrapper\">\n	<a href=\"#\" id=\"map-overlay\"></a> \n	<div id=\"map-small\"></div> \n</div>\n\n<div class=\"btn-toolbar\" style=\"padding: 20px;\">\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n  </div>\n  <div class=\"btn-group\">\n    <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n  </div>\n</div>\n\n<div id=\"myImage\"></div>\n\n<div id=\"fb-root\"></div>\n";
+    return "<script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js'></script>\n<div id=\"menu\">\n    <div id=\"menu-header\"><h1>Menu</h1></div>\n	<ul id=\"menu-items\">\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <img src=\"./images/header-icon.png\" alt=\"\" id=\"logo\" alt=\"Healthy Food Compass\" /> \n    <img src=\"./images/menu.png\" alt=\"\" id=\"menu-button\" /> \n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"content\">\n    <div id=\"map-wrapper\">\n    	<a href=\"#\" id=\"map-overlay\"></a> \n    	<div id=\"map-small\"></div> \n        <div id=\"venue-list\">\n            <ul>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n            </ul>\n\n        </div> \n    </div>\n\n    <div class=\"btn-toolbar\" style=\"display: none; padding: 20px;\">\n      <div class=\"btn-group\">\n        <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n      </div>\n      <div class=\"btn-group\">\n        <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n      </div>\n    </div>\n\n    <div id=\"myImage\"></div>\n\n    <div id=\"fb-root\"></div>\n</div>";
     });
 });
 window.require.register("views/view", function(exports, require, module) {
