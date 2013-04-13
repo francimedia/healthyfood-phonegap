@@ -732,9 +732,7 @@ window.require.register("views/home_view", function(exports, require, module) {
       	this.$('#content').height($('html').height() - $('header').height());
 
       	// scrollListener v1
-      	// myvenues.scrollListener(this.$('#content'));
-
-
+      	myvenues.scrollListener(this.$('#content'));
 
       	var map = mymapbox.init('map-small');
 
