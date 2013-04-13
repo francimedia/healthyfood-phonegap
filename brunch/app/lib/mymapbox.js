@@ -49,7 +49,8 @@ mymapbox = {
 			if (retina) {
 			    // Retina tiles are sized 1/2 of normal tiles for twice the pixel
 			    // density
-			    mymapbox.mbox.tileSize = { x: 128, y: 128 };
+			    // disabled for speed atm
+			    // mymapbox.mbox.tileSize = { x: 128, y: 128 };
 			}
 
 			mymapbox.mbox.addLayer(mapbox.layer().id('examples.map-4l7djmvo'));
