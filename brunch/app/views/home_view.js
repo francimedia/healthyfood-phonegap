@@ -21,9 +21,12 @@ module.exports = View.extend({
 
     afterRender: function() {
 
-    	this.$('#content').height($('html').height() - $('header').height());
+    	this.$('#content').height(window.height - $('header').height());
 
     	// scrollListener v1
+    	// myvenues.scrollListener1(this.$('#content'));
+
+    	// scrollListener v2
     	myvenues.scrollListener(this.$('#content'));
 
     	var map = mymapbox.init('map-small');
@@ -77,7 +80,7 @@ module.exports = View.extend({
 
 		myfb.init(callback);
 
-		this.$('#map-small').height($(window).height() - $('header').height());
+		
 		// this.$('#venue-list').height($(window).height() - $('header').height() - 200);
 
 		this.$('header').click(function(event) {

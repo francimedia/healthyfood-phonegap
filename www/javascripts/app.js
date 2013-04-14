@@ -302,14 +302,20 @@ window.require.register("lib/mymap", function(exports, require, module) {
   module.exports = mymap
 });
 window.require.register("lib/mymapbox", function(exports, require, module) {
+  var myvenues   = require('lib/myvenues');
+
   mymapbox = {
   	
   	mbox: null,
+
+  	venuesCache: [],
   	
   	userMarker: null,
   	userMarkerLayer: null,
   	markerLayer: null,
   	offset: 0,
+  	features: [],
+  	featuresMap: [],
 
   	currentPosition: {
           lat: 40.73269,
@@ -338,9 +344,13 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
       },
 
   	init: function(mapEl) {
+
   		$(function() { 
   			mymapbox.loadMapbox(mapEl);
   		});
+  		
+  		_.extend(mymapbox, Backbone.Events);
+
   		// return mymapbox.mbox;
   	},
 
@@ -419,6 +429,10 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
   		if(panTo == true) {
   			mymapbox.centerUserMarker();
   		}
+
+  		// fireEvent("venuesLoaded", document);
+  		mymapbox.trigger("placedUserMarker");
+    		
   	},
 
   	// figure out the perfect zoom level for the current situation
@@ -431,7 +445,7 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
   				return 15;
   				break;
   			case 'nearby':
-  				return 14;
+  				return 13;
   				break;
   			default:
   				return 14;
@@ -444,11 +458,25 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
           mymapbox.getVenues(mymapbox.currentPosition);        
   	},
 
+  	center: function(lat,lon) {
+  		mymapbox.mbox.center({ lat: lat, lon: lon }, true);
+  	},
+
   	fireResize: function() {
   		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
   	},
 
   	setMapSizeSmall: function() {
+  		// $('#map-small').height($('html').height() - $('header').height());
+  		$('#map-small').height( 2 * $('html').height());
+  		mymapbox.fireResize();
+  		$('#map-small').transition({ 
+  			y: (-1 * $('html').height()) + 95
+  		}, 0, 'ease');
+
+  		return;
+
+
   		// var offset = $('html').height() - $('header').height() - parseInt($('#venue-list').css('top'));
   		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) + $('header').height())) + ($('html').height()/5) ;
   		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) )) + ($('html').height()/5) ;
@@ -484,19 +512,21 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
           var data = userLocation;
 
           var parseResponse = function (result) {
-          	console.log(result);
-              venuesCache = [];
-              console.log(result);
-              
-              var features = [];
+
+  			// localStorage.setItem("venues", result);
+
+          	mymapbox.venuesCache = [];
+              mymapbox.features = [];
+              mymapbox.featuresMap = [];
+
               $.each(result.response.venues, function (index, venue) {
 
-                  venuesCache[venue.id] = venue;
+                  mymapbox.venuesCache[venue.id] = venue;
 
                   var makerId = index < 9 ? index + 1 : mymapbox.markerSymbols[index];
                   var markerColor = venue.save != 0 ? '#ff762c' : '#8aa924';
 
-                  features.push({
+                  mymapbox.features.push({
                       geometry: {
                           coordinates: [
                               venue.lon,
@@ -506,15 +536,21 @@ window.require.register("lib/mymapbox", function(exports, require, module) {
                       properties: {
                           'marker-size': 'small',
                           'marker-color': markerColor,
+                          '_marker-color': markerColor,
                           'marker-symbol': makerId
                       }
                   });
 
+                  mymapbox.featuresMap[venue.id] = mymapbox.features.length - 1;
+                  
               });
 
-              mymapbox.markerLayer.features(features);
+              mymapbox.markerLayer.features(mymapbox.features);
+              mymapbox.trigger("loadedVenues");
 
           };
+
+  		mymapbox.trigger("loadingVenues");
 
   		$.ajax({
   		  type: "GET",
@@ -568,8 +604,168 @@ window.require.register("lib/mymenu", function(exports, require, module) {
 });
 window.require.register("lib/myvenues", function(exports, require, module) {
   myvenues = {
-  	
+
   	scrollListener: function(contentEl) {
+  		
+  		var mymapbox = require('lib/mymapbox'),
+  		 	VenueItemView = require('views/venueitem_view'),
+  		 	venuesEl = $(contentEl).find('#venue-list'),
+  		 	venueListEl = $(contentEl).find('#venue-list ul');
+
+
+  		var listenToMymapboxEvents = function() {
+
+  			// add event lib
+  			_.extend(mymapbox, Backbone.Events);
+  			
+  			
+  			// as soon as places are loaded, zoom and highlight the first venue
+  			mymapbox.on("loadingVenues", function() {
+  			  console.log("loadingVenues");
+  			  setVenueListToLoadingState();
+  			});					
+
+  			mymapbox.on("loadedVenues", function() {
+  			  console.log("loadedVenues");
+  			  
+  			  // create one list item per venue
+  			  populateVenueList();
+
+  			  // 
+  			  highlightFirstVenue();
+
+  			});					
+
+  			// as soon as places are loaded, zoom and highlight the first venue
+  			mymapbox.on("placedUserMarker", function() {
+  			  // alert("placedUserMarker");
+  			});					
+
+  		};
+
+  		var venueListOffset = null;
+  		var calculateVenueListOffset = function() {
+  			if (venueListOffset != null) {
+  				return venueListOffset;
+  			}
+  			var elOffset = $(venuesEl).offset();
+  			venueListOffset = $('html').height() - elOffset.top - 70;
+  			return venueListOffset;
+  		}
+
+  		var setVenueListToLoadingState = function() {
+  			$(venueListEl).html('<li>Loading ...</li>');
+  			$(venuesEl).show();
+
+  			// get offset from screen top
+  			var elOffset = $(venuesEl).offset();
+  			
+  			// list should go from offset to bottom of screen
+  			venueListHeight = $('html').height() - elOffset.top;
+
+  			// 
+  			venueListMoveBy = venueListHeight - 70;
+
+  			$(venuesEl).height(venueListHeight).transition({
+  				y: venueListMoveBy,
+  				opacity: 0.85
+  			});
+  		};
+
+  		var setVenueListToLoadedState = function() {
+  			$(venuesEl).show().transition({
+  				y: 0,
+  				opacity: 1
+  			});
+  		};
+
+  		var populateVenueList = function() {
+  			console.log(mymapbox.venuesCache);
+
+  			clearVenueList();
+  			setVenueListToLoadedState();
+
+  		    $.each(mymapbox.venuesCache, function(index, venue) {
+  		    	if(venue == null) {
+  		    		return;
+  		    	}
+          	    var item = new VenueItemView({ model: venue });
+          	    // console.log('venue');
+          	    // console.log(venue);
+              	$(venueListEl).append(item.render().el);
+          	});
+
+          	activeVenueListener();
+
+  		}
+
+  		var clearVenueList = function() {
+  			$(venueListEl).html('');
+  		}
+
+  		var activeVenueListener = function() {
+  			
+  			var activeIndex = 0;
+  			var listElements = $(venueListEl).find('li');
+  			var lastColor = '';
+  			var lastMarker = null;
+
+  			var listElementHeight = 
+  				$(venueListEl).find('li:first').height()
+  				- ($(venueListEl).height()/(listElements.length*1.6));
+
+
+  			$(venuesEl).scroll(function(eventData) {
+
+  			  	var scrollVal = $(venuesEl).scrollTop();
+  			  	var _activeIndex = Math.round((scrollVal-25)/listElementHeight);
+
+  			  	if(_activeIndex != activeIndex) {
+  			  		console.log($(listElements[activeIndex]));
+  			  		$(listElements).css('background', '#fff');
+  			  		$(listElements[_activeIndex]).css('background', '#ddd');
+  			  		activeIndex = _activeIndex;
+  			  		var venueId = $(listElements[_activeIndex]).data('id');
+  			  		console.log(venueId);
+  			  		var venue = mymapbox.venuesCache[venueId];
+  			  		console.log(venue);
+  			  		// mymapbox.center(venue.lat,venue.lon);
+
+  			  		var featuresMapIndex = mymapbox.featuresMap[venueId];
+  			  		var marker = mymapbox.features[featuresMapIndex];
+  			  		console.log(marker);
+  			  		
+  			  		$.each(mymapbox.features, function(index, marker) {
+  			  			mymapbox.features[index]['properties']['marker-color'] = marker.properties['_marker-color'];
+  			  		});
+
+  			  		mymapbox.features[featuresMapIndex]['properties']['marker-color'] = '#ff0000';
+
+  			  		console.log(mymapbox.features[featuresMapIndex]);
+  			  		mymapbox.markerLayer.features(mymapbox.features);
+  			  		
+
+  			  	}
+  			});
+  		}
+
+  		var highlightFirstVenue = function(){
+  			highlightVenue(0);
+  		};
+
+  		var highlightVenue = function(index){
+  			//venuesCache
+
+  			// $('')
+  		};
+
+  		// add map events
+  		listenToMymapboxEvents();
+  		// activeVenueListener();
+
+  	},
+  	
+  	scrollListener1: function(contentEl) {
 
   		var mymapbox   = require('lib/mymapbox');
 
@@ -578,7 +774,7 @@ window.require.register("lib/myvenues", function(exports, require, module) {
 
 
   		var offset = mymapbox.offset * -0.65; 
-  		
+
   		// document.getElementById('box').scrollTop
   		setTimeout(function(){
   			var scrollVal = 150;
@@ -705,6 +901,15 @@ window.require.register("models/model", function(exports, require, module) {
   })
   
 });
+window.require.register("models/venueItem", function(exports, require, module) {
+  // Base class for all models
+  module.exports = Backbone.Model.extend({
+      initialize: function(){
+          // console.log("Welcome to this world");
+      }
+      
+  })
+});
 window.require.register("views/home_view", function(exports, require, module) {
   var View     = require('./view')
     , template = require('./templates/home')
@@ -729,9 +934,12 @@ window.require.register("views/home_view", function(exports, require, module) {
 
       afterRender: function() {
 
-      	this.$('#content').height($('html').height() - $('header').height());
+      	this.$('#content').height(window.height - $('header').height());
 
       	// scrollListener v1
+      	// myvenues.scrollListener1(this.$('#content'));
+
+      	// scrollListener v2
       	myvenues.scrollListener(this.$('#content'));
 
       	var map = mymapbox.init('map-small');
@@ -785,7 +993,7 @@ window.require.register("views/home_view", function(exports, require, module) {
 
   		myfb.init(callback);
 
-  		this.$('#map-small').height($(window).height() - $('header').height());
+  		
   		// this.$('#venue-list').height($(window).height() - $('header').height() - 200);
 
   		this.$('header').click(function(event) {
@@ -857,8 +1065,50 @@ window.require.register("views/templates/home", function(exports, require, modul
     
 
 
-    return "<script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js'></script>\n<div id=\"menu\">\n    <div id=\"menu-header\"><h1>Menu</h1></div>\n	<ul id=\"menu-items\">\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <img src=\"./images/header-icon.png\" alt=\"\" id=\"logo\" alt=\"Healthy Food Compass\" /> \n    <img src=\"./images/menu.png\" alt=\"\" id=\"menu-button\" /> \n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"content\">\n    <div id=\"map-wrapper\">\n    	<a href=\"#\" id=\"map-overlay\"></a> \n    	<div id=\"map-small\"></div> \n        <div id=\"venue-list\">\n            <ul>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n                <li class=\"accept\">\n                    <a href=\"#subpage\" data-router=\"section\" data-name=\"Fruit Dealer\" data-street=\"6th Ave.\" data-distance=\"1.5 mi\" data-venueid=\"233\">                         <div class=\"right\" style=\"text-align: right\">1.5 mi<br><span style=\"color: #ff762c;\">SAVE: 75%</span><!--                             <span class=\"icon brand twitter-2\"></span>                             <span class=\"icon brand facebook-2\"></span>                             -->                         </div>                         <strong>(1) Fruit Dealer</strong>                         <small>6th Ave.</small>                     </a>                 </li>\n            </ul>\n\n        </div> \n    </div>\n\n    <div class=\"btn-toolbar\" style=\"display: none; padding: 20px;\">\n      <div class=\"btn-group\">\n        <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n      </div>\n      <div class=\"btn-group\">\n        <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n      </div>\n    </div>\n\n    <div id=\"myImage\"></div>\n\n    <div id=\"fb-root\"></div>\n</div>";
+    return "<script src='http://api.tiles.mapbox.com/mapbox.js/v0.6.7/mapbox.js'></script>\n<div id=\"menu\">\n    <div id=\"menu-header\"><h1>Menu</h1></div>\n	<ul id=\"menu-items\">\n        <li class=\"active\">\n            <a href=\"#\">\n                <strong>Home</strong>\n            </a>\n        </li>\n        <li>\n            <a href=\"#\">\n                <strong>Settings</strong>\n            </a>\n        </li>\n    </ul>\n\n</div>\n<div id=\"menu-bg\"></div>\n\n<header>\n    <img src=\"./images/header-icon.png\" alt=\"\" id=\"logo\" alt=\"Healthy Food Compass\" /> \n    <img src=\"./images/menu.png\" alt=\"\" id=\"menu-button\" /> \n    <button class=\"btn\" id=\"map-close\">Close</button>\n</header> \n<div id=\"content\">\n    <div id=\"map-wrapper\">\n    	<a href=\"#\" id=\"map-overlay\"></a> \n    	<div id=\"map-small\"></div> \n        <div id=\"venue-list\">\n            <ul>\n                \n            </ul>\n\n        </div> \n    </div>\n\n    <div class=\"btn-toolbar\" style=\"display: none; padding: 20px;\">\n      <div class=\"btn-group\">\n        <button class=\"btn\" id=\"take-picture\">Take Picture</button>\n      </div>\n      <div class=\"btn-group\">\n        <button class=\"btn\" id=\"facebook-login\">Login with Facebook</button>\n      </div>\n    </div>\n\n    <div id=\"myImage\"></div>\n\n    <div id=\"fb-root\"></div>\n</div>";
     });
+});
+window.require.register("views/templates/venueitem", function(exports, require, module) {
+  module.exports = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+    this.compilerInfo = [2,'>= 1.0.0-rc.3'];
+  helpers = helpers || Handlebars.helpers; data = data || {};
+    var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+    buffer += "<div id=\""
+      + escapeExpression(((stack1 = ((stack1 = depth0.model),stack1 == null || stack1 === false ? stack1 : stack1.id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+      + "\">"
+      + escapeExpression(((stack1 = ((stack1 = depth0.model),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+      + "</div>";
+    return buffer;
+    });
+});
+window.require.register("views/venueitem_view", function(exports, require, module) {
+  var View     = require('./view')
+    , template = require('./templates/venueitem')
+    , VenueItemModel = require('../models/venueItem')
+
+  module.exports = View.extend({
+      id: '', 
+      tagName: 'li',
+      template: template,
+
+      initialize: function() {
+          this.model = new VenueItemModel(this.options.model);
+      },
+
+      render: function(){
+          this.id = this.options.model.id;
+          this.$el.attr('data-id', this.id);
+          // this.$el.html(this.options.model.name)
+          this.$el.html(this.template(this.options))
+          this.afterRender()
+          return this
+
+      }
+
+  })
+  
 });
 window.require.register("views/view", function(exports, require, module) {
   require('lib/view_helper')

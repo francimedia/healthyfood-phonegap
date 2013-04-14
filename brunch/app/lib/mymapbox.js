@@ -1,11 +1,17 @@
+var myvenues   = require('lib/myvenues');
+
 mymapbox = {
 	
 	mbox: null,
+
+	venuesCache: [],
 	
 	userMarker: null,
 	userMarkerLayer: null,
 	markerLayer: null,
 	offset: 0,
+	features: [],
+	featuresMap: [],
 
 	currentPosition: {
         lat: 40.73269,
@@ -34,9 +40,13 @@ mymapbox = {
     },
 
 	init: function(mapEl) {
+
 		$(function() { 
 			mymapbox.loadMapbox(mapEl);
 		});
+		
+		_.extend(mymapbox, Backbone.Events);
+
 		// return mymapbox.mbox;
 	},
 
@@ -115,6 +125,10 @@ mymapbox = {
 		if(panTo == true) {
 			mymapbox.centerUserMarker();
 		}
+
+		// fireEvent("venuesLoaded", document);
+		mymapbox.trigger("placedUserMarker");
+  		
 	},
 
 	// figure out the perfect zoom level for the current situation
@@ -127,7 +141,7 @@ mymapbox = {
 				return 15;
 				break;
 			case 'nearby':
-				return 14;
+				return 13;
 				break;
 			default:
 				return 14;
@@ -140,11 +154,25 @@ mymapbox = {
         mymapbox.getVenues(mymapbox.currentPosition);        
 	},
 
+	center: function(lat,lon) {
+		mymapbox.mbox.center({ lat: lat, lon: lon }, true);
+	},
+
 	fireResize: function() {
 		mymapbox.mbox.setSize({x: $('#map-small').width(), y: $('#map-small').height()});
 	},
 
 	setMapSizeSmall: function() {
+		// $('#map-small').height($('html').height() - $('header').height());
+		$('#map-small').height( 2 * $('html').height());
+		mymapbox.fireResize();
+		$('#map-small').transition({ 
+			y: (-1 * $('html').height()) + 95
+		}, 0, 'ease');
+
+		return;
+
+
 		// var offset = $('html').height() - $('header').height() - parseInt($('#venue-list').css('top'));
 		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) + $('header').height())) + ($('html').height()/5) ;
 		// var offset = (0.5 * (parseInt($('#venue-list').css('top')) )) + ($('html').height()/5) ;
@@ -180,19 +208,21 @@ mymapbox = {
         var data = userLocation;
 
         var parseResponse = function (result) {
-        	console.log(result);
-            venuesCache = [];
-            console.log(result);
-            
-            var features = [];
+
+			// localStorage.setItem("venues", result);
+
+        	mymapbox.venuesCache = [];
+            mymapbox.features = [];
+            mymapbox.featuresMap = [];
+
             $.each(result.response.venues, function (index, venue) {
 
-                venuesCache[venue.id] = venue;
+                mymapbox.venuesCache[venue.id] = venue;
 
                 var makerId = index < 9 ? index + 1 : mymapbox.markerSymbols[index];
                 var markerColor = venue.save != 0 ? '#ff762c' : '#8aa924';
 
-                features.push({
+                mymapbox.features.push({
                     geometry: {
                         coordinates: [
                             venue.lon,
@@ -202,15 +232,21 @@ mymapbox = {
                     properties: {
                         'marker-size': 'small',
                         'marker-color': markerColor,
+                        '_marker-color': markerColor,
                         'marker-symbol': makerId
                     }
                 });
 
+                mymapbox.featuresMap[venue.id] = mymapbox.features.length - 1;
+                
             });
 
-            mymapbox.markerLayer.features(features);
+            mymapbox.markerLayer.features(mymapbox.features);
+            mymapbox.trigger("loadedVenues");
 
         };
+
+		mymapbox.trigger("loadingVenues");
 
 		$.ajax({
 		  type: "GET",
