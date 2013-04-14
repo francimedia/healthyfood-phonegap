@@ -13,6 +13,15 @@ myvenues = {
 			// add event lib
 			_.extend(mymapbox, Backbone.Events);
 			
+			// hide venue list on map fullscreen event
+			mymapbox.on("mapFullscreenOpen", function() {
+				$('#venue-list').transition({ y: $('#venue-list').height() }, 1000);
+			});					
+			
+			// Show venue list on map fullscreen event
+			mymapbox.on("mapFullscreenClose", function() {
+				$('#venue-list').transition({ y: 0 }, 1000);
+			});					
 			
 			// as soon as places are loaded, zoom and highlight the first venue
 			mymapbox.on("loadingVenues", function() {
@@ -90,7 +99,7 @@ myvenues = {
             	$(venueListEl).append(item.render().el);
         	});
 
-        	activeVenueListener();
+        	// activeVenueListener();
 
 		}
 

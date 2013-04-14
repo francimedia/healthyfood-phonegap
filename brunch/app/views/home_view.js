@@ -83,20 +83,7 @@ module.exports = View.extend({
 		
 		// this.$('#venue-list').height($(window).height() - $('header').height() - 200);
 
-		this.$('header').click(function(event) {
-			$('#map-overlay').show();
- 			$('#venue-list').transition({ y: 0 }, 600, function() {
- 				mymapbox.setMapSizeSmall();
- 				mymapbox.centerUserMarker();
- 			});
-		});
 
-		this.$('#map-overlay').click(function(event) {
-			$('#map-overlay').hide();
-			$('#map-small').height($(window).height() - $('header').height());
-			mymapbox.setMapSizeLarge();
-			$('#venue-list').transition({ y: $('#venue-list').height() }, 1000);
-		});    	
 
 		this.$('#take-picture').click(function(event) {
 			picture.take();

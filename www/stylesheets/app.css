@@ -7986,13 +7986,13 @@ header #map-close {
   -webkit-transform: translate3d(0, 0, 0);
 }
 #map-overlay {
-  min-height: 300px;
+  height: 140px;
   width: 100%;
   position: absolute;
   top: 0;
   left: 0;
   z-index: 1000;
-  display: none;
+  display: block;
 }
 #map-wrapper {
   position: relative;
@@ -8066,7 +8066,7 @@ header #map-close {
 #venue-list {
   opacity: 0;
   position: absolute;
-  top: 200px;
+  top: 160px;
   left: 0;
   background: #eee;
   width: 94%;
